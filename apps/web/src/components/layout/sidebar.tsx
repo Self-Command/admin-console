@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { brand } from '@/config/brand'
 import { useAuth } from '@/components/auth/auth-provider'
-import { Badge } from '@/components/ui/badge'
 import { allowedNavItems } from '@/lib/access'
 import { adminApiConfig } from '@/lib/config'
 import { cn } from '@/lib/utils'
@@ -37,23 +36,6 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
               const active =
                 item.href === '/' ? pathname === '/' : pathname.startsWith(item.href)
               const Icon = item.icon
-
-              if (item.soon) {
-                return (
-                  <li key={item.href}>
-                    <span
-                      aria-disabled="true"
-                      className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground/70"
-                    >
-                      <Icon className="size-4" />
-                      {item.title}
-                      <Badge variant="outline" className="ml-auto px-1.5 text-[10px]">
-                        下一批
-                      </Badge>
-                    </span>
-                  </li>
-                )
-              }
 
               return (
                 <li key={item.href}>

@@ -13,7 +13,6 @@ export type NavItem = {
   href: string
   icon: LucideIcon
   permission?: Permission
-  soon?: boolean
 }
 
 export type BrandConfig = {

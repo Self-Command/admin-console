@@ -7,9 +7,11 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { UserMenu } from '@/components/layout/user-menu'
+import { useAuth } from '@/components/auth/auth-provider'
 
 export function Header({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
   const pathname = usePathname()
+  const { preview } = useAuth()
   const current = brand.nav.find((item) =>
     item.href === '/' ? pathname === '/' : pathname.startsWith(item.href),
   )
@@ -33,13 +35,15 @@ export function Header({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
           </p>
         </div>
         <div className="ml-auto flex items-center gap-1.5">
-          <Badge
-            variant="warning"
-            className="hidden h-7 gap-1.5 px-2.5 sm:inline-flex"
-          >
-            <span className="size-1.5 rounded-full bg-warning" />
-            预览模式
-          </Badge>
+          {preview ? (
+            <Badge
+              variant="warning"
+              className="hidden h-7 gap-1.5 px-2.5 sm:inline-flex"
+            >
+              <span className="size-1.5 rounded-full bg-warning" />
+              预览模式
+            </Badge>
+          ) : null}
           <ThemeToggle />
           <UserMenu />
         </div>

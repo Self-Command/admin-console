@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/components/auth/auth-provider'
+import { hasPermission } from '@/lib/access'
 import { roleLabels } from '@/lib/roles'
 
 export function UserMenu() {
@@ -20,6 +21,8 @@ export function UserMenu() {
   const router = useRouter()
 
   if (!identity) return null
+
+  const canReadRoles = hasPermission(identity, 'role.read')
 
   async function handleSignOut() {
     await signOut()
@@ -52,12 +55,14 @@ export function UserMenu() {
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/roles">
-            <UsersIcon />
-            管理员与角色
-          </Link>
-        </DropdownMenuItem>
+        {canReadRoles ? (
+          <DropdownMenuItem asChild>
+            <Link href="/roles">
+              <UsersIcon />
+              管理员与角色
+            </Link>
+          </DropdownMenuItem>
+        ) : null}
         <DropdownMenuItem onSelect={() => void handleSignOut()}>
           <LogOutIcon />
           退出登录

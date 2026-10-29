@@ -18,14 +18,6 @@ export type {
 
 // Preview fixtures. Pages switch to the admin-api data provider for real sessions.
 
-export const previewStats = {
-  accounts: 12486,
-  activeAccounts: 12102,
-  roles: 4,
-  auditsToday: 18,
-  indexerLag: '1.4s',
-}
-
 export const previewIndexer: IndexerStatus = {
   backfillComplete: true,
   lastEventAt: '2026-10-29T07:41:12.000Z',
