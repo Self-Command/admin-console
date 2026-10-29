@@ -55,6 +55,20 @@ jobs:
     name: Typecheck, lint and test
     needs: secret-scan
     runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: admin
+          POSTGRES_DB: admin_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U admin -d admin_e2e"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -69,6 +83,12 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
+        env:
+          ADMIN_API_TEST_DATABASE_URL: postgres://admin:admin@127.0.0.1:5432/admin_e2e
+      - name: Permission matrix (HTTP e2e)
+        run: pnpm --filter @admin/api test:e2e
+        env:
+          ADMIN_API_E2E_DATABASE_URL: postgres://admin:admin@127.0.0.1:5432/admin_e2e
 
   lexicon-contract:
     name: Lexicon contract

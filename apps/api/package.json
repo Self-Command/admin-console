@@ -9,7 +9,8 @@
     "migrate:up": "tsx src/db/migrate-cli.ts up",
     "migrate:status": "tsx src/db/migrate-cli.ts status",
     "typecheck": "tsc6 --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "test:e2e": "vitest run tests/e2e"
   },
   "dependencies": {
     "@admin/lexicons": "workspace:*",
