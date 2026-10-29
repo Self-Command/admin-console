@@ -1,0 +1,32 @@
+{
+  "name": "@admin/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "start": "tsx src/main.ts",
+    "migrate:up": "tsx src/db/migrate-cli.ts up",
+    "migrate:status": "tsx src/db/migrate-cli.ts status",
+    "typecheck": "tsc6 --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@admin/lexicons": "workspace:*",
+    "@atproto/lex-cbor": "^0.1.7",
+    "@atproto/lex-schema": "^0.2.9",
+    "@atproto/lex-server": "^0.2.0",
+    "@atproto/ws-client": "^0.2.1",
+    "@atproto/xrpc-server": "^0.13.7",
+    "@atproto-labs/did-resolver": "^0.3.11",
+    "kysely": "^0.29.7",
+    "pg": "^8.23.1",
+    "tsx": "^4.23.15"
+  },
+  "devDependencies": {
+    "@atproto/crypto": "^0.5.7",
+    "@types/pg": "^8.23.1",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "vitest": "^4.1.10"
+  }
+}

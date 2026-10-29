@@ -1,0 +1,14 @@
+packages:
+  - apps/*
+  - packages/*
+minimumReleaseAgeExclude:
+  - '@atproto/common@0.8.7'
+  - '@atproto/lex-installer@0.2.4'
+  - '@atproto/lex-resolver@0.4.1'
+  - '@atproto/lex@0.4.4'
+  - '@atproto/repo@0.11.2'
+  - '@atproto/xrpc-server@0.13.7'
+  - lucide-react@1.63.0
+allowBuilds:
+  core-js: true
+  esbuild: true

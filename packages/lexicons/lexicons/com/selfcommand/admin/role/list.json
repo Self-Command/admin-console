@@ -1,0 +1,72 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.role.list",
+  "description": "List role bindings. Requires a service JWT (com.atproto.server.getServiceAuth) and the admin role.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "parameters": {
+        "type": "params",
+        "properties": {
+          "cursor": {
+            "type": "string",
+            "maxLength": 2048,
+            "description": "Opaque pagination cursor returned by a previous call."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 50
+          },
+          "role": {
+            "type": "string",
+            "knownValues": [
+              "admin",
+              "operator",
+              "viewer"
+            ]
+          },
+          "search": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "Case-insensitive DID prefix or handle substring match."
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "roles",
+            "total"
+          ],
+          "properties": {
+            "cursor": {
+              "type": "string"
+            },
+            "total": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of bindings matching the filters."
+            },
+            "roles": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#roleBinding"
+              }
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller has no role or the role does not allow reading role bindings."
+        }
+      ]
+    }
+  }
+}

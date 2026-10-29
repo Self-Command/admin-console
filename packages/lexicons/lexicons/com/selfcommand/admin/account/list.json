@@ -1,0 +1,74 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.account.list",
+  "description": "List accounts from the locally indexed directory. Requires a service JWT (com.atproto.server.getServiceAuth) and any workspace role. Results remain readable while the indexer reconnects.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "parameters": {
+        "type": "params",
+        "properties": {
+          "cursor": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 50
+          },
+          "search": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "Case-insensitive handle substring or DID prefix match."
+          },
+          "status": {
+            "type": "string",
+            "knownValues": [
+              "active",
+              "deactivated",
+              "suspended",
+              "takendown",
+              "deleted",
+              "unknown"
+            ]
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["accounts", "total", "indexer"],
+          "properties": {
+            "cursor": {
+              "type": "string"
+            },
+            "total": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "accounts": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#account"
+              }
+            },
+            "indexer": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#indexerStatus"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller has no role in the workspace."
+        }
+      ]
+    }
+  }
+}

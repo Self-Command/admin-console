@@ -1,0 +1,62 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.role.update",
+  "description": "Change the role of an existing binding. Requires a service JWT (com.atproto.server.getServiceAuth) and the admin role. Demoting the last admin is rejected.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["subject", "role"],
+          "properties": {
+            "subject": {
+              "type": "string",
+              "format": "did"
+            },
+            "role": {
+              "type": "string",
+              "knownValues": ["admin", "operator", "viewer"]
+            },
+            "note": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["role"],
+          "properties": {
+            "role": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#roleBinding"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller has no role or the role does not allow managing role bindings."
+        },
+        {
+          "name": "RoleNotFound",
+          "description": "The subject holds no role binding."
+        },
+        {
+          "name": "LastAdmin",
+          "description": "The change would leave no admin in the workspace."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The subject DID or role value is not acceptable."
+        }
+      ]
+    }
+  }
+}

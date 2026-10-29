@@ -1,0 +1,24 @@
+{
+  "name": "@admin/lexicons",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lex:check": "node scripts/check-lexicons.mjs",
+    "lex:gen": "lex build --lexicons ./lexicons --out ./src/lexicons --clear --lib @atproto/lex --index-file && node scripts/normalize-generated.mjs",
+    "typecheck": "tsc6 --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@atproto/lex": "^0.4.4"
+  },
+  "devDependencies": {
+    "@atproto/lex-builder": "^0.1.18",
+    "@atproto/lex-document": "^0.1.14",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "vitest": "^4.1.10"
+  }
+}

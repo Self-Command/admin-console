@@ -1,0 +1,41 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.role.revoke",
+  "description": "Remove a role binding. Requires a service JWT (com.atproto.server.getServiceAuth) and the admin role. Revoking the last admin is rejected.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["subject"],
+          "properties": {
+            "subject": {
+              "type": "string",
+              "format": "did"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller has no role or the role does not allow managing role bindings."
+        },
+        {
+          "name": "RoleNotFound",
+          "description": "The subject holds no role binding."
+        },
+        {
+          "name": "LastAdmin",
+          "description": "The change would leave no admin in the workspace."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The subject DID is not acceptable."
+        }
+      ]
+    }
+  }
+}

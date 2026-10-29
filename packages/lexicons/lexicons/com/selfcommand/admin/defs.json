@@ -1,0 +1,149 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.defs",
+  "description": "Shared definitions for the selfcommand admin service. All methods in this namespace require a service JWT obtained from the caller's PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "roleName": {
+      "type": "string",
+      "knownValues": ["admin", "operator", "viewer"],
+      "description": "Role assigned to an administrator account. admin manages role bindings and reads audit events; operator holds future business read/write permissions; viewer is read-only over the account directory."
+    },
+    "roleBinding": {
+      "type": "object",
+      "required": ["subject", "role", "grantedBy", "createdAt", "updatedAt"],
+      "properties": {
+        "subject": {
+          "type": "string",
+          "format": "did",
+          "description": "DID of the account holding the role."
+        },
+        "role": {
+          "type": "ref",
+          "ref": "#roleName"
+        },
+        "grantedBy": {
+          "type": "string",
+          "format": "did",
+          "description": "DID of the administrator that created or last changed the binding."
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "datetime"
+        }
+      }
+    },
+    "auditResult": {
+      "type": "string",
+      "knownValues": ["success", "denied", "error"],
+      "description": "Outcome of an audited action."
+    },
+    "auditEvent": {
+      "type": "object",
+      "required": ["id", "createdAt", "actor", "action", "result"],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "actor": {
+          "type": "string",
+          "format": "did",
+          "description": "DID of the authenticated caller; anonymous failures are only logged and never stored."
+        },
+        "action": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "XRPC method or semantic action name."
+        },
+        "targetType": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "target": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "result": {
+          "type": "ref",
+          "ref": "#auditResult"
+        },
+        "detail": {
+          "type": "string",
+          "maxLength": 2000,
+          "description": "Redacted supplementary information; never contains tokens, passwords, email addresses or full request bodies."
+        }
+      }
+    },
+    "accountStatus": {
+      "type": "string",
+      "knownValues": [
+        "active",
+        "deactivated",
+        "suspended",
+        "takendown",
+        "deleted",
+        "unknown"
+      ]
+    },
+    "account": {
+      "type": "object",
+      "required": ["did", "status", "indexedAt"],
+      "properties": {
+        "did": {
+          "type": "string",
+          "format": "did"
+        },
+        "handle": {
+          "type": "string",
+          "format": "handle"
+        },
+        "status": {
+          "type": "ref",
+          "ref": "#accountStatus"
+        },
+        "lastEventAt": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Time of the last identity or account event applied to this entry."
+        },
+        "indexedAt": {
+          "type": "string",
+          "format": "datetime"
+        }
+      }
+    },
+    "indexerStatus": {
+      "type": "object",
+      "required": ["backfillComplete"],
+      "properties": {
+        "backfillComplete": {
+          "type": "boolean"
+        },
+        "lastEventAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "lastIndexedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "cursor": {
+          "type": "string",
+          "description": "Opaque firehose cursor persisted by the indexer."
+        }
+      }
+    }
+  }
+}

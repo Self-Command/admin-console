@@ -1,0 +1,43 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.role.get",
+  "description": "Read a single role binding. Requires a service JWT (com.atproto.server.getServiceAuth) and the admin role.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "parameters": {
+        "type": "params",
+        "required": ["subject"],
+        "properties": {
+          "subject": {
+            "type": "string",
+            "format": "did"
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["role"],
+          "properties": {
+            "role": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#roleBinding"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller has no role or the role does not allow reading role bindings."
+        },
+        {
+          "name": "RoleNotFound",
+          "description": "The subject holds no role binding."
+        }
+      ]
+    }
+  }
+}

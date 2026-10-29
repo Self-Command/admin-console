@@ -1,0 +1,245 @@
+import type {
+  Account,
+  AuditEvent,
+  IndexerStatus,
+  RoleBinding,
+} from '@/lib/data/types'
+
+export { roleLabels, roleDescriptions } from '@/lib/roles'
+export type { RoleName } from '@/lib/roles'
+export type {
+  Account,
+  AccountStatus,
+  AuditEvent,
+  AuditResult,
+  IndexerStatus,
+  RoleBinding,
+} from '@/lib/data/types'
+
+// Preview fixtures. Pages switch to the admin-api data provider for real sessions.
+
+export const previewStats = {
+  accounts: 12486,
+  activeAccounts: 12102,
+  roles: 4,
+  auditsToday: 18,
+  indexerLag: '1.4s',
+}
+
+export const previewIndexer: IndexerStatus = {
+  backfillComplete: true,
+  lastEventAt: '2026-10-29T07:41:12.000Z',
+  lastIndexedAt: '2026-10-29T07:41:14.000Z',
+  cursor: '48213917',
+}
+
+export const previewRoles: RoleBinding[] = [
+  {
+    subject: 'did:web:ops.selfcommand.example',
+    role: 'admin',
+    grantedBy: 'system',
+    note: '平台负责人',
+    createdAt: '2026-10-20T02:10:00.000Z',
+    updatedAt: '2026-10-20T02:10:00.000Z',
+  },
+  {
+    subject: 'did:web:moderation.selfcommand.example',
+    role: 'operator',
+    grantedBy: 'did:web:ops.selfcommand.example',
+    note: '内容运营',
+    createdAt: '2026-10-22T06:35:00.000Z',
+    updatedAt: '2026-10-26T09:12:00.000Z',
+  },
+  {
+    subject: 'did:web:audit.selfcommand.example',
+    role: 'viewer',
+    grantedBy: 'did:web:ops.selfcommand.example',
+    note: '合规只读',
+    createdAt: '2026-10-24T03:00:00.000Z',
+    updatedAt: '2026-10-24T03:00:00.000Z',
+  },
+  {
+    subject: 'did:plc:previewdemo7x4k2m6q3n5p4w',
+    role: 'operator',
+    grantedBy: 'did:web:ops.selfcommand.example',
+    createdAt: '2026-10-27T08:20:00.000Z',
+    updatedAt: '2026-10-27T08:20:00.000Z',
+  },
+]
+
+export const previewAccounts: Account[] = [
+  {
+    did: 'did:plc:previewalice7x4k2m6q3n5p',
+    handle: 'alice.example.com',
+    status: 'active',
+    lastEventAt: '2026-10-29T07:40:02.000Z',
+    indexedAt: '2026-10-29T07:41:14.000Z',
+  },
+  {
+    did: 'did:plc:previewbob3f9n8v2c6h1j5s',
+    handle: 'bob.example.com',
+    status: 'suspended',
+    lastEventAt: '2026-10-29T05:18:44.000Z',
+    indexedAt: '2026-10-29T07:41:14.000Z',
+  },
+  {
+    did: 'did:plc:previewcarol9t2w6y4r8u1i3o',
+    handle: 'carol.example.com',
+    status: 'active',
+    lastEventAt: '2026-10-28T22:06:10.000Z',
+    indexedAt: '2026-10-29T07:41:14.000Z',
+  },
+  {
+    did: 'did:plc:previewdave5k1m7q2n9x4z8c',
+    handle: 'dave.example.com',
+    status: 'deactivated',
+    lastEventAt: '2026-10-25T11:32:00.000Z',
+    indexedAt: '2026-10-29T07:41:14.000Z',
+  },
+  {
+    did: 'did:plc:previewerin2h8j4v6b1s5d3f',
+    handle: 'erin.example.com',
+    status: 'takendown',
+    lastEventAt: '2026-10-27T14:45:31.000Z',
+    indexedAt: '2026-10-29T07:41:14.000Z',
+  },
+  {
+    did: 'did:plc:previewfrank4c7x1z9m3q6w2e',
+    status: 'unknown',
+    indexedAt: '2026-10-29T07:41:14.000Z',
+  },
+]
+
+export const previewAuditEvents: AuditEvent[] = [
+  {
+    id: 'evt_01',
+    action: 'com.selfcommand.admin.role.create',
+    actor: 'did:web:ops.selfcommand.example',
+    result: 'success',
+    targetType: 'role',
+    target: 'did:plc:previewdemo7x4k2m6q3n5p4w',
+    detail: '授予 operator',
+    createdAt: '2026-10-29T08:20:11.000Z',
+  },
+  {
+    id: 'evt_02',
+    action: 'com.selfcommand.admin.role.update',
+    actor: 'did:web:ops.selfcommand.example',
+    result: 'success',
+    targetType: 'role',
+    target: 'did:web:moderation.selfcommand.example',
+    detail: 'viewer → operator',
+    createdAt: '2026-10-29T07:58:40.000Z',
+  },
+  {
+    id: 'evt_03',
+    action: 'com.selfcommand.admin.account.list',
+    actor: 'did:plc:previewoutsider6r2t8v4w1x9z3k',
+    result: 'denied',
+    targetType: 'directory',
+    detail: '无后台角色',
+    createdAt: '2026-10-29T07:41:05.000Z',
+  },
+  {
+    id: 'evt_04',
+    action: 'com.selfcommand.admin.role.revoke',
+    actor: 'did:web:moderation.selfcommand.example',
+    result: 'denied',
+    targetType: 'role',
+    target: 'did:plc:previewdemo7x4k2m6q3n5p4w',
+    detail: '缺少 role.write 权限',
+    createdAt: '2026-10-29T07:22:18.000Z',
+  },
+  {
+    id: 'evt_05',
+    action: 'com.selfcommand.admin.role.create',
+    actor: 'did:web:ops.selfcommand.example',
+    result: 'error',
+    targetType: 'role',
+    target: 'did:web:audit.selfcommand.example',
+    detail: '角色已存在',
+    createdAt: '2026-10-29T06:47:09.000Z',
+  },
+  {
+    id: 'evt_06',
+    action: 'com.selfcommand.admin.role.bootstrap',
+    actor: 'did:web:ops.selfcommand.example',
+    result: 'success',
+    targetType: 'role',
+    target: 'did:web:ops.selfcommand.example',
+    detail: '首个管理员绑定',
+    createdAt: '2026-10-29T06:12:48.000Z',
+  },
+  {
+    id: 'evt_07',
+    action: 'com.selfcommand.admin.role.list',
+    actor: 'did:web:moderation.selfcommand.example',
+    result: 'denied',
+    detail: '缺少 role.read 权限',
+    createdAt: '2026-10-29T05:55:03.000Z',
+  },
+  {
+    id: 'evt_08',
+    action: 'com.selfcommand.admin.account.list',
+    actor: 'did:plc:previewoutsider6r2t8v4w1x9z3k',
+    result: 'denied',
+    detail: '无后台角色',
+    createdAt: '2026-10-29T05:30:27.000Z',
+  },
+  {
+    id: 'evt_09',
+    action: 'com.selfcommand.admin.account.get',
+    actor: 'did:plc:previewoutsider6r2t8v4w1x9z3k',
+    result: 'denied',
+    targetType: 'account',
+    target: 'did:plc:previewalice7x4k2m6q3n5p',
+    detail: '无后台角色',
+    createdAt: '2026-10-29T04:41:16.000Z',
+  },
+  {
+    id: 'evt_10',
+    action: 'com.selfcommand.admin.role.update',
+    actor: 'did:web:ops.selfcommand.example',
+    result: 'success',
+    targetType: 'role',
+    target: 'did:web:audit.selfcommand.example',
+    detail: 'operator → viewer',
+    createdAt: '2026-10-29T03:18:52.000Z',
+  },
+  {
+    id: 'evt_11',
+    action: 'com.selfcommand.admin.role.list',
+    actor: 'did:web:audit.selfcommand.example',
+    result: 'denied',
+    detail: '缺少 role.read 权限',
+    createdAt: '2026-10-28T23:02:44.000Z',
+  },
+  {
+    id: 'evt_12',
+    action: 'com.selfcommand.admin.role.revoke',
+    actor: 'did:web:ops.selfcommand.example',
+    result: 'success',
+    targetType: 'role',
+    target: 'did:plc:previewstale4c7x1z9m3q6w2e',
+    detail: '移除 viewer',
+    createdAt: '2026-10-28T10:26:37.000Z',
+  },
+  {
+    id: 'evt_13',
+    action: 'com.selfcommand.admin.audit.list',
+    actor: 'did:web:moderation.selfcommand.example',
+    result: 'denied',
+    detail: '缺少 audit.read 权限',
+    createdAt: '2026-10-27T01:47:09.000Z',
+  },
+  {
+    id: 'evt_14',
+    action: 'com.selfcommand.admin.role.create',
+    actor: 'did:web:ops.selfcommand.example',
+    result: 'success',
+    targetType: 'role',
+    target: 'did:web:audit.selfcommand.example',
+    detail: '授予 viewer',
+    createdAt: '2026-10-26T16:20:00.000Z',
+  },
+]

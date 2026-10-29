@@ -1,0 +1,42 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.session.get",
+  "description": "Read the calling account's admin identity, role and permissions. Requires a service JWT (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to this method. A role binding is not required: callers without one receive an empty permissions list and no role field.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["did", "permissions"],
+          "properties": {
+            "did": {
+              "type": "string",
+              "format": "did",
+              "description": "DID of the authenticated caller."
+            },
+            "role": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#roleName"
+            },
+            "permissions": {
+              "type": "array",
+              "description": "Permissions granted by the caller's role; empty when the caller holds no binding.",
+              "items": {
+                "type": "string",
+                "maxLength": 64,
+                "knownValues": [
+                  "directory.read",
+                  "role.read",
+                  "role.write",
+                  "audit.read"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
