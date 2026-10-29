@@ -3,7 +3,7 @@
  */
 
 import { l } from "@atproto/lex";
-import * as AdminDefs from "./..//defs.defs.js";
+import * as AdminDefs from "../defs.defs.js";
 
 const $nsid = "com.selfcommand.admin.session.get";
 

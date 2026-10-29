@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os'
 import { join, relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, test } from 'vitest'
+import { normalizeSpecifiers } from '../scripts/normalize-specifiers.mjs'
 
 const packageRoot = fileURLToPath(new URL('..', import.meta.url))
 const sourceDir = join(packageRoot, 'lexicons')
@@ -45,14 +46,6 @@ async function listFiles(dir: string, base = dir): Promise<string[]> {
     }
   }
   return files.sort()
-}
-
-function normalizeSpecifiers(source: string): string {
-  return source.replace(
-    /(from\s+")([^"]+)(")/g,
-    (_, before, specifier, after) =>
-      `${before}${specifier.replaceAll('\\', '/')}${after}`,
-  )
 }
 
 const documents = new Map<string, Record<string, unknown>>()

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// The lex builder derives import specifiers with node:path.relative, which
-// emits backslashes on Windows. Committed output must stay POSIX so the same
-// files typecheck on Linux runners.
+// Committed lexicons must be byte-identical on every platform; the import
+// specifier fix lives in normalize-specifiers.mjs so the contract test shares it.
 import { readdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { normalizeSpecifiers } from './normalize-specifiers.mjs'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 const outDir = join(root, 'src', 'lexicons')
@@ -26,11 +26,7 @@ async function findTs(dir) {
 let changed = 0
 for (const file of await findTs(outDir)) {
   const source = await readFile(file, 'utf8')
-  const normalized = source.replace(
-    /(from\s+")([^"]+)(")/g,
-    (_, before, specifier, after) =>
-      `${before}${specifier.replaceAll('\\', '/')}${after}`,
-  )
+  const normalized = normalizeSpecifiers(source)
   if (normalized !== source) {
     await writeFile(file, normalized)
     changed += 1
