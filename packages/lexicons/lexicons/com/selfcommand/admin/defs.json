@@ -4,27 +4,70 @@
   "description": "Shared definitions for the selfcommand admin service. All methods in this namespace require a service JWT obtained from the caller's PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
   "defs": {
     "roleName": {
+      "description": "Role assigned to an administrator account. admin manages settings, roles, approvals and account administration; moderator handles reports, content and verification actions; operator holds read access to the directory, content and reports; viewer is read-only over the directory, content, reports, verification and analytics.",
       "type": "string",
-      "knownValues": ["admin", "operator", "viewer"],
-      "description": "Role assigned to an administrator account. admin manages role bindings and reads audit events; operator holds future business read/write permissions; viewer is read-only over the account directory."
+      "knownValues": [
+        "admin",
+        "moderator",
+        "operator",
+        "viewer"
+      ]
+    },
+    "permission": {
+      "description": "Server-side permission granted to a role. UI visibility is never a substitute for these checks.",
+      "type": "string",
+      "knownValues": [
+        "directory.read",
+        "content.read",
+        "content.write",
+        "moderation.read",
+        "moderation.write",
+        "moderation.queue.manage",
+        "verification.read",
+        "verification.write",
+        "notification.read",
+        "notification.write",
+        "policy.read",
+        "policy.write",
+        "account.write",
+        "account.admin",
+        "analytics.read",
+        "role.read",
+        "role.write",
+        "audit.read",
+        "settings.read",
+        "settings.write",
+        "security.read",
+        "security.write",
+        "chat.read",
+        "announcement.read",
+        "announcement.write",
+        "announcement.publish"
+      ]
     },
     "roleBinding": {
       "type": "object",
-      "required": ["subject", "role", "grantedBy", "createdAt", "updatedAt"],
+      "required": [
+        "subject",
+        "role",
+        "grantedBy",
+        "createdAt",
+        "updatedAt"
+      ],
       "properties": {
         "subject": {
+          "description": "DID of the account holding the role.",
           "type": "string",
-          "format": "did",
-          "description": "DID of the account holding the role."
+          "format": "did"
         },
         "role": {
           "type": "ref",
           "ref": "#roleName"
         },
         "grantedBy": {
+          "description": "DID of the administrator that created or last changed the binding.",
           "type": "string",
-          "format": "did",
-          "description": "DID of the administrator that created or last changed the binding."
+          "format": "did"
         },
         "note": {
           "type": "string",
@@ -41,13 +84,23 @@
       }
     },
     "auditResult": {
+      "description": "Outcome of an audited action.",
       "type": "string",
-      "knownValues": ["success", "denied", "error"],
-      "description": "Outcome of an audited action."
+      "knownValues": [
+        "success",
+        "denied",
+        "error"
+      ]
     },
     "auditEvent": {
       "type": "object",
-      "required": ["id", "createdAt", "actor", "action", "result"],
+      "required": [
+        "id",
+        "createdAt",
+        "actor",
+        "action",
+        "result"
+      ],
       "properties": {
         "id": {
           "type": "integer",
@@ -58,14 +111,14 @@
           "format": "datetime"
         },
         "actor": {
+          "description": "DID of the authenticated caller; anonymous failures are only logged and never stored.",
           "type": "string",
-          "format": "did",
-          "description": "DID of the authenticated caller; anonymous failures are only logged and never stored."
+          "format": "did"
         },
         "action": {
+          "description": "XRPC method or semantic action name.",
           "type": "string",
-          "maxLength": 128,
-          "description": "XRPC method or semantic action name."
+          "maxLength": 128
         },
         "targetType": {
           "type": "string",
@@ -80,9 +133,32 @@
           "ref": "#auditResult"
         },
         "detail": {
+          "description": "Redacted supplementary information; never contains tokens, passwords, email addresses or full request bodies.",
           "type": "string",
-          "maxLength": 2000,
-          "description": "Redacted supplementary information; never contains tokens, passwords, email addresses or full request bodies."
+          "maxLength": 2000
+        },
+        "requestId": {
+          "description": "Request identifier returned to the caller in the x-request-id response header.",
+          "type": "string",
+          "maxLength": 128
+        },
+        "actorIp": {
+          "description": "Source address of the request, truncated to a safe length.",
+          "type": "string",
+          "maxLength": 64
+        },
+        "userAgent": {
+          "description": "Client identifier supplied by the caller, truncated to a safe length.",
+          "type": "string",
+          "maxLength": 256
+        },
+        "before": {
+          "description": "Structured value before a change; only present on mutation events.",
+          "type": "unknown"
+        },
+        "after": {
+          "description": "Structured value after a change; only present on mutation events.",
+          "type": "unknown"
         }
       }
     },
@@ -99,7 +175,11 @@
     },
     "account": {
       "type": "object",
-      "required": ["did", "status", "indexedAt"],
+      "required": [
+        "did",
+        "status",
+        "indexedAt"
+      ],
       "properties": {
         "did": {
           "type": "string",
@@ -114,9 +194,9 @@
           "ref": "#accountStatus"
         },
         "lastEventAt": {
+          "description": "Time of the last identity or account event applied to this entry.",
           "type": "string",
-          "format": "datetime",
-          "description": "Time of the last identity or account event applied to this entry."
+          "format": "datetime"
         },
         "indexedAt": {
           "type": "string",
@@ -126,8 +206,27 @@
     },
     "indexerStatus": {
       "type": "object",
-      "required": ["backfillComplete"],
+      "required": [
+        "backfillComplete"
+      ],
       "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "paused": {
+          "type": "boolean"
+        },
+        "pausedBy": {
+          "type": "string",
+          "format": "did"
+        },
+        "pausedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "connected": {
+          "type": "boolean"
+        },
         "backfillComplete": {
           "type": "boolean"
         },
@@ -140,8 +239,2483 @@
           "format": "datetime"
         },
         "cursor": {
+          "description": "Opaque firehose cursor persisted by the indexer.",
+          "type": "string"
+        }
+      }
+    },
+    "settingSection": {
+      "description": "Runtime setting partition. Every partition is versioned and audited independently.",
+      "type": "string",
+      "knownValues": [
+        "branding",
+        "theme",
+        "login",
+        "navigation",
+        "features",
+        "ui",
+        "integrations",
+        "audit",
+        "indexer"
+      ]
+    },
+    "legalLink": {
+      "type": "object",
+      "required": [
+        "label",
+        "url"
+      ],
+      "properties": {
+        "label": {
           "type": "string",
-          "description": "Opaque firehose cursor persisted by the indexer."
+          "maxLength": 40
+        },
+        "url": {
+          "type": "string",
+          "maxLength": 512
+        }
+      }
+    },
+    "brandingSettings": {
+      "type": "object",
+      "required": [
+        "name",
+        "shortName",
+        "description",
+        "logoSource"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "shortName": {
+          "type": "string",
+          "maxLength": 24
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "logoSource": {
+          "type": "string",
+          "knownValues": [
+            "icon",
+            "url",
+            "upload"
+          ]
+        },
+        "logoUrl": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "faviconUrl": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "supportUrl": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "docsUrl": {
+          "type": "string",
+          "maxLength": 512
+        }
+      }
+    },
+    "themeSettings": {
+      "type": "object",
+      "required": [
+        "primaryLight",
+        "primaryDark",
+        "accentLight",
+        "accentDark",
+        "radius",
+        "density",
+        "fontFamily",
+        "defaultMode"
+      ],
+      "properties": {
+        "primaryLight": {
+          "type": "string",
+          "maxLength": 7
+        },
+        "primaryDark": {
+          "type": "string",
+          "maxLength": 7
+        },
+        "accentLight": {
+          "type": "string",
+          "maxLength": 7
+        },
+        "accentDark": {
+          "type": "string",
+          "maxLength": 7
+        },
+        "radius": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 24
+        },
+        "density": {
+          "type": "string",
+          "knownValues": [
+            "comfortable",
+            "compact"
+          ]
+        },
+        "fontFamily": {
+          "type": "string",
+          "knownValues": [
+            "sans",
+            "serif"
+          ]
+        },
+        "defaultMode": {
+          "type": "string",
+          "knownValues": [
+            "light",
+            "dark",
+            "system"
+          ]
+        }
+      }
+    },
+    "loginSettings": {
+      "type": "object",
+      "required": [
+        "headline",
+        "subheadline",
+        "footer",
+        "background",
+        "legalLinks"
+      ],
+      "properties": {
+        "headline": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "subheadline": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "footer": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "background": {
+          "type": "string",
+          "knownValues": [
+            "gradient",
+            "solid",
+            "none"
+          ]
+        },
+        "legalLinks": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "#legalLink"
+          },
+          "maxLength": 5
+        }
+      }
+    },
+    "navItem": {
+      "type": "object",
+      "required": [
+        "id",
+        "hidden"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "href": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "icon": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "hidden": {
+          "type": "boolean"
+        }
+      }
+    },
+    "navGroup": {
+      "type": "object",
+      "required": [
+        "id",
+        "label",
+        "items"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "#navItem"
+          },
+          "maxLength": 20
+        }
+      }
+    },
+    "navigationSettings": {
+      "type": "object",
+      "required": [
+        "groups"
+      ],
+      "properties": {
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "#navGroup"
+          },
+          "maxLength": 8
+        }
+      }
+    },
+    "featureSettings": {
+      "type": "object",
+      "required": [
+        "auditExport",
+        "roleBulk",
+        "indexerControls",
+        "systemStatus",
+        "accountOperations",
+        "approvals",
+        "securityCenter",
+        "dashboardTrends"
+      ],
+      "properties": {
+        "auditExport": {
+          "type": "boolean"
+        },
+        "roleBulk": {
+          "type": "boolean"
+        },
+        "indexerControls": {
+          "type": "boolean"
+        },
+        "systemStatus": {
+          "type": "boolean"
+        },
+        "accountOperations": {
+          "description": "Shows account note, tag, sync and export entry points. Visibility only; permissions still apply.",
+          "type": "boolean"
+        },
+        "approvals": {
+          "description": "Shows the approval center entry point. High-risk actions still require an approval server-side.",
+          "type": "boolean"
+        },
+        "securityCenter": {
+          "description": "Shows the access activity and block entry points. Visibility only; security.read still applies.",
+          "type": "boolean"
+        },
+        "dashboardTrends": {
+          "description": "Shows daily metric trends on the dashboard.",
+          "type": "boolean"
+        }
+      }
+    },
+    "uiSettings": {
+      "type": "object",
+      "required": [
+        "pageSize",
+        "dateFormat"
+      ],
+      "properties": {
+        "pageSize": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "dateFormat": {
+          "type": "string",
+          "knownValues": [
+            "date-time",
+            "date"
+          ]
+        }
+      }
+    },
+    "integrationSettings": {
+      "type": "object",
+      "properties": {
+        "ozoneUrl": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "pdsUrl": {
+          "type": "string",
+          "maxLength": 512
+        }
+      }
+    },
+    "auditSettings": {
+      "type": "object",
+      "required": [
+        "exportMaxRows"
+      ],
+      "properties": {
+        "exportMaxRows": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 10000
+        }
+      }
+    },
+    "indexerSettings": {
+      "type": "object",
+      "required": [
+        "lagWarningSeconds"
+      ],
+      "properties": {
+        "lagWarningSeconds": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 86400
+        }
+      }
+    },
+    "settingsSections": {
+      "type": "object",
+      "required": [
+        "branding",
+        "theme",
+        "login",
+        "navigation",
+        "features",
+        "ui",
+        "integrations",
+        "audit",
+        "indexer"
+      ],
+      "properties": {
+        "branding": {
+          "type": "ref",
+          "ref": "#brandingSettings"
+        },
+        "theme": {
+          "type": "ref",
+          "ref": "#themeSettings"
+        },
+        "login": {
+          "type": "ref",
+          "ref": "#loginSettings"
+        },
+        "navigation": {
+          "type": "ref",
+          "ref": "#navigationSettings"
+        },
+        "features": {
+          "type": "ref",
+          "ref": "#featureSettings"
+        },
+        "ui": {
+          "type": "ref",
+          "ref": "#uiSettings"
+        },
+        "integrations": {
+          "type": "ref",
+          "ref": "#integrationSettings"
+        },
+        "audit": {
+          "type": "ref",
+          "ref": "#auditSettings"
+        },
+        "indexer": {
+          "type": "ref",
+          "ref": "#indexerSettings"
+        }
+      }
+    },
+    "settingsPatch": {
+      "description": "Partial settings document used by import. Omitted partitions keep their current values; every supplied partition is validated before any write.",
+      "type": "object",
+      "properties": {
+        "branding": {
+          "type": "ref",
+          "ref": "#brandingSettings"
+        },
+        "theme": {
+          "type": "ref",
+          "ref": "#themeSettings"
+        },
+        "login": {
+          "type": "ref",
+          "ref": "#loginSettings"
+        },
+        "navigation": {
+          "type": "ref",
+          "ref": "#navigationSettings"
+        },
+        "features": {
+          "type": "ref",
+          "ref": "#featureSettings"
+        },
+        "ui": {
+          "type": "ref",
+          "ref": "#uiSettings"
+        },
+        "integrations": {
+          "type": "ref",
+          "ref": "#integrationSettings"
+        },
+        "audit": {
+          "type": "ref",
+          "ref": "#auditSettings"
+        },
+        "indexer": {
+          "type": "ref",
+          "ref": "#indexerSettings"
+        }
+      }
+    },
+    "settingMeta": {
+      "type": "object",
+      "required": [
+        "section",
+        "version",
+        "updatedAt"
+      ],
+      "properties": {
+        "section": {
+          "type": "ref",
+          "ref": "#settingSection"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "updatedBy": {
+          "type": "string",
+          "format": "did"
+        }
+      }
+    },
+    "settingRevision": {
+      "type": "object",
+      "required": [
+        "id",
+        "section",
+        "version",
+        "actor",
+        "createdAt",
+        "before",
+        "after"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "section": {
+          "type": "ref",
+          "ref": "#settingSection"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "actor": {
+          "type": "string",
+          "format": "did"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "requestId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "before": {
+          "type": "unknown"
+        },
+        "after": {
+          "type": "unknown"
+        }
+      }
+    },
+    "preferences": {
+      "type": "object",
+      "properties": {
+        "themeMode": {
+          "type": "string",
+          "knownValues": [
+            "light",
+            "dark",
+            "system"
+          ]
+        },
+        "density": {
+          "type": "string",
+          "knownValues": [
+            "comfortable",
+            "compact"
+          ]
+        },
+        "pageSize": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "dateFormat": {
+          "type": "string",
+          "knownValues": [
+            "date-time",
+            "date"
+          ]
+        },
+        "savedViews": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "#savedView"
+          },
+          "maxLength": 10
+        },
+        "filterMacros": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "#filterMacro"
+          },
+          "maxLength": 20
+        }
+      }
+    },
+    "publicBranding": {
+      "type": "object",
+      "required": [
+        "name",
+        "shortName",
+        "description",
+        "logoSource"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "shortName": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "logoSource": {
+          "type": "string",
+          "knownValues": [
+            "icon",
+            "url",
+            "upload"
+          ]
+        },
+        "logoUrl": {
+          "type": "string"
+        },
+        "faviconUrl": {
+          "type": "string"
+        },
+        "supportUrl": {
+          "type": "string"
+        },
+        "docsUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "publicTheme": {
+      "type": "object",
+      "required": [
+        "primaryLight",
+        "primaryDark",
+        "accentLight",
+        "accentDark",
+        "radius",
+        "density",
+        "fontFamily",
+        "defaultMode"
+      ],
+      "properties": {
+        "primaryLight": {
+          "type": "string"
+        },
+        "primaryDark": {
+          "type": "string"
+        },
+        "accentLight": {
+          "type": "string"
+        },
+        "accentDark": {
+          "type": "string"
+        },
+        "radius": {
+          "type": "integer"
+        },
+        "density": {
+          "type": "string"
+        },
+        "fontFamily": {
+          "type": "string"
+        },
+        "defaultMode": {
+          "type": "string"
+        }
+      }
+    },
+    "systemComponent": {
+      "type": "object",
+      "required": [
+        "name",
+        "status"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "knownValues": [
+            "ok",
+            "degraded",
+            "unavailable"
+          ]
+        },
+        "latencyMs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "checkedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "detail": {
+          "type": "string",
+          "maxLength": 200
+        }
+      }
+    },
+    "migrationInfo": {
+      "type": "object",
+      "required": [
+        "executed",
+        "pending"
+      ],
+      "properties": {
+        "executed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "pending": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "roleImportItem": {
+      "type": "object",
+      "required": [
+        "subject",
+        "role"
+      ],
+      "properties": {
+        "subject": {
+          "type": "string",
+          "format": "did"
+        },
+        "role": {
+          "type": "ref",
+          "ref": "#roleName"
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 200
+        }
+      }
+    },
+    "systemStatus": {
+      "type": "object",
+      "required": [
+        "version",
+        "startedAt",
+        "uptimeSeconds",
+        "database",
+        "migrations",
+        "indexer",
+        "pds"
+      ],
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "commit": {
+          "type": "string"
+        },
+        "startedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "uptimeSeconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "database": {
+          "type": "ref",
+          "ref": "#systemComponent"
+        },
+        "migrations": {
+          "type": "ref",
+          "ref": "#migrationInfo"
+        },
+        "indexer": {
+          "type": "ref",
+          "ref": "#indexerStatus"
+        },
+        "pds": {
+          "type": "ref",
+          "ref": "#systemComponent"
+        },
+        "ozone": {
+          "type": "ref",
+          "ref": "#systemComponent"
+        },
+        "appview": {
+          "type": "ref",
+          "ref": "#systemComponent"
+        },
+        "ozoneDaemon": {
+          "type": "ref",
+          "ref": "#systemComponent"
+        },
+        "externalServices": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "#externalService"
+          },
+          "maxLength": 10
+        }
+      }
+    },
+    "savedView": {
+      "type": "object",
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "search": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "status": {
+          "type": "ref",
+          "ref": "#accountStatus"
+        },
+        "sort": {
+          "type": "string",
+          "knownValues": [
+            "did",
+            "handle",
+            "status",
+            "indexedAt"
+          ]
+        },
+        "order": {
+          "type": "string",
+          "knownValues": [
+            "asc",
+            "desc"
+          ]
+        }
+      }
+    },
+    "filterMacro": {
+      "type": "object",
+      "description": "Saved filter preset for the moderation reports or events list, kept per administrator account.",
+      "required": [
+        "id",
+        "name",
+        "scope"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "scope": {
+          "type": "string",
+          "knownValues": [
+            "reports",
+            "events"
+          ]
+        },
+        "isDefault": {
+          "type": "boolean",
+          "description": "When true the macro is applied automatically when the list page opens. At most one default macro per scope."
+        },
+        "filters": {
+          "type": "ref",
+          "ref": "#filterMacroFilters"
+        }
+      }
+    },
+    "filterMacroFilters": {
+      "type": "object",
+      "description": "Filter values captured by a saved macro. Only fields relevant to the macro scope are applied.",
+      "properties": {
+        "subject": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "subjectType": {
+          "type": "string",
+          "knownValues": [
+            "account",
+            "record",
+            "message",
+            "conversation"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "knownValues": [
+            "open",
+            "closed",
+            "escalated",
+            "queued",
+            "assigned"
+          ]
+        },
+        "queue": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "actor": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "keyword": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "types": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "maxLength": 10
+        },
+        "hasComment": {
+          "type": "boolean"
+        },
+        "direction": {
+          "type": "string",
+          "knownValues": [
+            "asc",
+            "desc"
+          ]
+        },
+        "batchId": {
+          "type": "string",
+          "maxLength": 256
+        }
+      }
+    },
+    "accountOperation": {
+      "type": "object",
+      "required": [
+        "did",
+        "tags",
+        "syncPaused"
+      ],
+      "properties": {
+        "did": {
+          "type": "string",
+          "format": "did"
+        },
+        "note": {
+          "description": "Operational note kept in the admin console only. It never changes the account on the community.",
+          "type": "string",
+          "maxLength": 500
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 24
+          },
+          "maxLength": 10
+        },
+        "syncPaused": {
+          "description": "When true the directory indexer stops applying events for this account; the community account is unaffected.",
+          "type": "boolean"
+        },
+        "syncPausedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "syncPausedBy": {
+          "type": "string",
+          "format": "did"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "updatedBy": {
+          "type": "string",
+          "format": "did"
+        }
+      }
+    },
+    "accessRecord": {
+      "type": "object",
+      "required": [
+        "did",
+        "ip",
+        "firstSeenAt",
+        "lastSeenAt",
+        "requestCount"
+      ],
+      "properties": {
+        "did": {
+          "type": "string",
+          "format": "did"
+        },
+        "ip": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "userAgent": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "firstSeenAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "lastSeenAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "requestCount": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "accessBlock": {
+      "type": "object",
+      "required": [
+        "did",
+        "blockedBy",
+        "blockedAt"
+      ],
+      "properties": {
+        "did": {
+          "type": "string",
+          "format": "did"
+        },
+        "blockedBy": {
+          "type": "string",
+          "format": "did"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "blockedAt": {
+          "type": "string",
+          "format": "datetime"
+        }
+      }
+    },
+    "approvalAction": {
+      "description": "High-risk action that requires approval from a second administrator. Moderation, verification and account actions are executed against the upstream service on approval.",
+      "type": "string",
+      "knownValues": [
+        "settings.resetAll",
+        "role.revoke",
+        "role.demote",
+        "role.import",
+        "moderation.takedown",
+        "moderation.batch",
+        "moderation.label",
+        "verification.grant",
+        "verification.revoke",
+        "account.admin.update",
+        "account.admin.delete",
+        "notifications.send",
+        "policy.write",
+        "announcement.publish",
+        "announcement.archive"
+      ]
+    },
+    "approvalStatus": {
+      "type": "string",
+      "knownValues": [
+        "pending",
+        "executed",
+        "rejected",
+        "cancelled",
+        "expired",
+        "failed"
+      ]
+    },
+    "approval": {
+      "type": "object",
+      "required": [
+        "id",
+        "action",
+        "status",
+        "requestedBy",
+        "requestedAt",
+        "expiresAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "action": {
+          "type": "ref",
+          "ref": "#approvalAction"
+        },
+        "targetType": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "target": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "status": {
+          "type": "ref",
+          "ref": "#approvalStatus"
+        },
+        "requestedBy": {
+          "type": "string",
+          "format": "did"
+        },
+        "requestedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "decidedBy": {
+          "type": "string",
+          "format": "did"
+        },
+        "decidedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "error": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "metricStatusCounts": {
+      "type": "object",
+      "required": [
+        "active",
+        "deactivated",
+        "suspended",
+        "takendown",
+        "deleted",
+        "unknown"
+      ],
+      "properties": {
+        "active": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "deactivated": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "suspended": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "takendown": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "deleted": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unknown": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "dailyMetric": {
+      "type": "object",
+      "required": [
+        "day",
+        "accountsTotal",
+        "accountsNew",
+        "accountsActive24h",
+        "statusCounts",
+        "auditTotal",
+        "auditDenied"
+      ],
+      "properties": {
+        "day": {
+          "description": "Calendar day in the report timezone, formatted YYYY-MM-DD.",
+          "type": "string",
+          "maxLength": 10
+        },
+        "accountsTotal": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "accountsNew": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "accountsActive24h": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "statusCounts": {
+          "type": "ref",
+          "ref": "#metricStatusCounts"
+        },
+        "auditTotal": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "auditDenied": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "moderationSubjectType": {
+      "description": "Kind of subject handled by moderation: an account, a record, a chat message or a conversation.",
+      "type": "string",
+      "knownValues": [
+        "account",
+        "record",
+        "message",
+        "conversation"
+      ]
+    },
+    "reportStatus": {
+      "type": "string",
+      "knownValues": [
+        "open",
+        "closed",
+        "escalated",
+        "queued",
+        "assigned"
+      ]
+    },
+    "reportAction": {
+      "description": "Action applied to a single report.",
+      "type": "string",
+      "knownValues": [
+        "assign",
+        "unassign",
+        "close",
+        "escalate",
+        "reopen"
+      ]
+    },
+    "moderationAction": {
+      "description": "Moderation event emitted against one or more subjects.",
+      "type": "string",
+      "knownValues": [
+        "takedown",
+        "reverseTakedown",
+        "acknowledge",
+        "escalate",
+        "comment",
+        "label",
+        "mute",
+        "unmute"
+      ]
+    },
+    "reportView": {
+      "type": "object",
+      "required": [
+        "id",
+        "status",
+        "subject",
+        "reportType",
+        "reportedBy",
+        "createdAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "status": {
+          "type": "ref",
+          "ref": "#reportStatus"
+        },
+        "subject": {
+          "description": "Account DID or record AT-URI that was reported.",
+          "type": "string",
+          "maxLength": 2048
+        },
+        "subjectType": {
+          "type": "ref",
+          "ref": "#moderationSubjectType"
+        },
+        "reportType": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "reportedBy": {
+          "type": "string",
+          "format": "did"
+        },
+        "reporterHandle": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "subjectHandle": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "comment": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "queueId": {
+          "type": "integer"
+        },
+        "priorityScore": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "actionNote": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "assignedTo": {
+          "type": "string",
+          "format": "did"
+        },
+        "closedBy": {
+          "type": "string",
+          "format": "did"
+        },
+        "closedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "eventId": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "relatedReportCount": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "eventView": {
+      "type": "object",
+      "required": [
+        "id",
+        "eventType",
+        "subject",
+        "createdBy",
+        "createdAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "eventType": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "subject": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "subjectType": {
+          "type": "ref",
+          "ref": "#moderationSubjectType"
+        },
+        "createdBy": {
+          "type": "string",
+          "format": "did"
+        },
+        "creatorHandle": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "subjectHandle": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "comment": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "reportId": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "durationInHours": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "maxLength": 10
+        }
+      }
+    },
+    "queueStats": {
+      "type": "object",
+      "properties": {
+        "pendingCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "closedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "escalatedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "inboundCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "actionedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "acknowledgedCount": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "queueView": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "enabled",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "subjectTypes": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "#moderationSubjectType"
+          },
+          "maxLength": 4
+        },
+        "collection": {
+          "type": "string",
+          "format": "nsid"
+        },
+        "reportTypes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "maxLength": 50
+        },
+        "createdBy": {
+          "type": "string",
+          "format": "did"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "stats": {
+          "type": "ref",
+          "ref": "#queueStats"
+        }
+      }
+    },
+    "contentView": {
+      "type": "object",
+      "required": [
+        "uri",
+        "author",
+        "hidden"
+      ],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "cid": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "author": {
+          "type": "string",
+          "format": "did"
+        },
+        "authorHandle": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "collection": {
+          "type": "string",
+          "format": "nsid"
+        },
+        "indexedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "hidden": {
+          "description": "True when the subject is taken down or restricted upstream.",
+          "type": "boolean"
+        },
+        "reviewState": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "maxLength": 20
+        },
+        "likeCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "repostCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "replyCount": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "scheduledActionView": {
+      "type": "object",
+      "required": [
+        "id",
+        "action",
+        "subject",
+        "status",
+        "createdBy",
+        "createdAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "action": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "subject": {
+          "type": "string",
+          "format": "did"
+        },
+        "status": {
+          "type": "string",
+          "knownValues": [
+            "pending",
+            "executed",
+            "cancelled",
+            "failed"
+          ]
+        },
+        "executeAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "executeAfter": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "executeUntil": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "comment": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "createdBy": {
+          "type": "string",
+          "format": "did"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "lastFailureReason": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "verificationView": {
+      "type": "object",
+      "required": [
+        "uri",
+        "issuer",
+        "subject",
+        "createdAt",
+        "isActive"
+      ],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "issuer": {
+          "type": "string",
+          "format": "did"
+        },
+        "subject": {
+          "type": "string",
+          "format": "did"
+        },
+        "handle": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "displayName": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "isActive": {
+          "type": "boolean"
+        },
+        "revokeReason": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "templateView": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "subject",
+        "contentMarkdown",
+        "disabled"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "subject": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "contentMarkdown": {
+          "type": "string",
+          "maxLength": 20000
+        },
+        "lang": {
+          "type": "string",
+          "maxLength": 16
+        },
+        "disabled": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "datetime"
+        }
+      }
+    },
+    "policyOptionView": {
+      "type": "object",
+      "required": [
+        "key",
+        "scope"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "format": "nsid"
+        },
+        "scope": {
+          "type": "string",
+          "knownValues": [
+            "instance",
+            "personal"
+          ]
+        },
+        "value": {
+          "type": "unknown"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "managerRole": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "updatedBy": {
+          "type": "string",
+          "format": "did"
+        }
+      }
+    },
+    "policySetView": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "valuesCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "datetime"
+        }
+      }
+    },
+    "safelinkRuleView": {
+      "type": "object",
+      "required": [
+        "url",
+        "pattern",
+        "action",
+        "reason"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "pattern": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "action": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "source": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "comment": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "datetime"
+        }
+      }
+    },
+    "safelinkEventView": {
+      "type": "object",
+      "required": [
+        "url",
+        "pattern",
+        "action",
+        "reason",
+        "createdAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "url": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "pattern": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "action": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "source": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "comment": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "createdBy": {
+          "type": "string",
+          "format": "did"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime"
+        }
+      }
+    },
+    "labelerConfig": {
+      "type": "object",
+      "required": [
+        "available"
+      ],
+      "properties": {
+        "available": {
+          "type": "boolean"
+        },
+        "did": {
+          "type": "string",
+          "format": "did"
+        },
+        "handle": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "displayName": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "policies": {
+          "type": "unknown"
+        },
+        "labels": {
+          "type": "unknown"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "inviteCodeView": {
+      "type": "object",
+      "required": [
+        "code",
+        "available",
+        "disabled"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "available": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "disabled": {
+          "type": "boolean"
+        },
+        "createdBy": {
+          "type": "string",
+          "format": "did"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "usesCount": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "accountAdminInfo": {
+      "type": "object",
+      "required": [
+        "did"
+      ],
+      "properties": {
+        "did": {
+          "type": "string",
+          "format": "did"
+        },
+        "handle": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 320
+        },
+        "emailConfirmed": {
+          "type": "boolean"
+        },
+        "invitesDisabled": {
+          "type": "boolean"
+        },
+        "invitedBy": {
+          "type": "ref",
+          "ref": "#inviteCodeView"
+        },
+        "invites": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "#inviteCodeView"
+          },
+          "maxLength": 100
+        },
+        "deactivatedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "indexedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "takedown": {
+          "type": "boolean"
+        }
+      }
+    },
+    "analyticsSummary": {
+      "type": "object",
+      "required": [
+        "pendingCount",
+        "closedCount",
+        "escalatedCount",
+        "inboundCount",
+        "actionedCount",
+        "acknowledgedCount"
+      ],
+      "properties": {
+        "pendingCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "closedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "escalatedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "inboundCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "actionedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "acknowledgedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "closureTargetMetRate": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "closureTargetOverdueCount": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "analyticsDay": {
+      "type": "object",
+      "required": [
+        "day"
+      ],
+      "properties": {
+        "day": {
+          "type": "string",
+          "maxLength": 10
+        },
+        "pendingCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "closedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "escalatedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "inboundCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "actionedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "acknowledgedCount": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "accountOverview": {
+      "type": "object",
+      "required": [
+        "did"
+      ],
+      "properties": {
+        "did": {
+          "type": "string",
+          "format": "did"
+        },
+        "handle": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "status": {
+          "type": "ref",
+          "ref": "#accountStatus"
+        },
+        "reviewState": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "takendown": {
+          "type": "boolean"
+        },
+        "muted": {
+          "type": "boolean"
+        },
+        "lastReviewedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "lastReportedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "eventCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "openReportCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "maxLength": 20
+        }
+      }
+    },
+    "imageResult": {
+      "type": "object",
+      "required": [
+        "imageUrl"
+      ],
+      "properties": {
+        "imageUrl": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "thumbnailUrl": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "postUri": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "author": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "score": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "externalService": {
+      "type": "object",
+      "required": [
+        "key",
+        "name",
+        "status"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "knownValues": [
+            "image-search",
+            "chat",
+            "email",
+            "labeler"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "status": {
+          "type": "string",
+          "knownValues": [
+            "ok",
+            "degraded",
+            "unavailable",
+            "disabled",
+            "unknown"
+          ]
+        },
+        "detail": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "checkedAt": {
+          "type": "string",
+          "format": "datetime"
+        }
+      }
+    },
+    "reviewState": {
+      "description": "Review state of a moderated subject: needs review, closed, escalated to a higher queue, or no review yet.",
+      "type": "string",
+      "knownValues": [
+        "open",
+        "closed",
+        "escalated",
+        "none"
+      ]
+    },
+    "statusView": {
+      "type": "object",
+      "required": [
+        "id",
+        "subject",
+        "reviewState",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "subject": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "subjectType": {
+          "type": "ref",
+          "ref": "#moderationSubjectType"
+        },
+        "subjectHandle": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "reviewState": {
+          "type": "ref",
+          "ref": "#reviewState"
+        },
+        "takendown": {
+          "type": "boolean"
+        },
+        "muted": {
+          "type": "boolean"
+        },
+        "comment": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "priorityScore": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "lastReportedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "lastReviewedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "lastReviewedBy": {
+          "type": "string",
+          "format": "did"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "maxLength": 20
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "datetime"
+        }
+      }
+    },
+    "eventBatchSummary": {
+      "type": "object",
+      "required": [
+        "batchId",
+        "totalEvents",
+        "scannedEvents",
+        "truncated",
+        "typeCounts"
+      ],
+      "properties": {
+        "batchId": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "totalEvents": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "scannedEvents": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "truncated": {
+          "type": "boolean"
+        },
+        "createdAfter": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "createdBefore": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "typeCounts": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "#eventTypeCount"
+          },
+          "maxLength": 20
+        },
+        "createdBy": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "did"
+          },
+          "maxLength": 20
+        }
+      }
+    },
+    "eventTypeCount": {
+      "type": "object",
+      "required": [
+        "eventType",
+        "count"
+      ],
+      "properties": {
+        "eventType": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "announcementLevel": {
+      "description": "Visual severity of an announcement: informational, warning or critical.",
+      "type": "string",
+      "knownValues": [
+        "info",
+        "warning",
+        "critical"
+      ]
+    },
+    "announcementPlacement": {
+      "description": "Where the announcement is shown: the admin console or the public application.",
+      "type": "string",
+      "knownValues": [
+        "admin",
+        "app"
+      ]
+    },
+    "announcementStatus": {
+      "type": "string",
+      "knownValues": [
+        "draft",
+        "published",
+        "archived"
+      ]
+    },
+    "announcementView": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "body",
+        "level",
+        "placement",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "body": {
+          "type": "string",
+          "maxLength": 5000
+        },
+        "level": {
+          "type": "ref",
+          "ref": "#announcementLevel"
+        },
+        "placement": {
+          "type": "ref",
+          "ref": "#announcementPlacement"
+        },
+        "status": {
+          "type": "ref",
+          "ref": "#announcementStatus"
+        },
+        "startsAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "endsAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "createdBy": {
+          "type": "string",
+          "format": "did"
+        },
+        "publishedBy": {
+          "type": "string",
+          "format": "did"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "datetime"
+        }
+      }
+    },
+    "publicAnnouncementView": {
+      "description": "Whitelisted public fields of a published announcement; no internal identifiers or operator identities.",
+      "type": "object",
+      "required": [
+        "title",
+        "body",
+        "level",
+        "placement"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "body": {
+          "type": "string",
+          "maxLength": 5000
+        },
+        "level": {
+          "type": "ref",
+          "ref": "#announcementLevel"
+        },
+        "placement": {
+          "type": "ref",
+          "ref": "#announcementPlacement"
+        },
+        "startsAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "endsAt": {
+          "type": "string",
+          "format": "datetime"
         }
       }
     }

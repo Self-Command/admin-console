@@ -1,0 +1,71 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.announcement.publish",
+  "description": "Publish a draft announcement. Publishing requires the announcement.publish permission and an approved request; the approval is checked again when the action executes. Requires a service JWT obtained from the caller PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "approvalId": {
+              "type": "string",
+              "maxLength": 128,
+              "description": "Id of the approved request that authorizes this publication."
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "announcement"
+          ],
+          "properties": {
+            "announcement": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#announcementView"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks announcement.publish."
+        },
+        {
+          "name": "NotFound",
+          "description": "The announcement does not exist."
+        },
+        {
+          "name": "ApprovalRequired",
+          "description": "Publishing requires an approval request from another administrator."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The approval id is invalid or does not match this announcement."
+        },
+        {
+          "name": "InvalidState",
+          "description": "Only drafts can be published."
+        }
+      ]
+    }
+  }
+}

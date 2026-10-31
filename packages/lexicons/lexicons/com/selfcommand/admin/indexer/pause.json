@@ -1,0 +1,41 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.indexer.pause",
+  "description": "Pause the account directory indexer. Requires a service JWT (com.atproto.server.getServiceAuth) and settings.write. The pause state persists across restarts and is audited.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "reason": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["status"],
+          "properties": {
+            "status": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#indexerStatus"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks settings.write."
+        }
+      ]
+    }
+  }
+}

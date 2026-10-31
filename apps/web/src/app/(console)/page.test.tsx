@@ -37,6 +37,14 @@ vi.mock('@/lib/data/use-data-provider', () => ({
   useDataProvider: () => mocks.provider,
 }))
 
+vi.mock('@/components/layout/workspace-provider', () => ({
+  useWorkspace: () => ({
+    groups: [],
+    dateFormat: 'date-time' as const,
+    features: { dashboardTrends: false },
+  }),
+}))
+
 const now = new Date().toISOString()
 
 const indexer = {
@@ -98,11 +106,11 @@ describe('dashboard page', () => {
 
     expect(await screen.findByText('活跃 100 · 只读索引')).toBeInTheDocument()
     expect(screen.getByText('120')).toBeInTheDocument()
-    expect(screen.getByText('管理员 2 · 运营 3 · 只读 1')).toBeInTheDocument()
+    expect(screen.getByText('管理员 2 · 审核员 1 · 运营 3 · 只读 1')).toBeInTheDocument()
     expect(screen.getByText('拒绝 2 · 自 00:00 起')).toBeInTheDocument()
     expect(screen.getByText('授予角色')).toBeInTheDocument()
     expect(screen.getByText('48213917')).toBeInTheDocument()
-    expect(mocks.listRoles).toHaveBeenCalledTimes(3)
+    expect(mocks.listRoles).toHaveBeenCalledTimes(4)
     expect(mocks.listAudit).toHaveBeenCalledTimes(3)
   })
 

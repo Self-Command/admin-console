@@ -1,0 +1,31 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.policy.labeler.get",
+  "description": "Read the labeler service identity, declared policies and connection status. Read-only; credentials are never returned. Requires a service JWT obtained from the caller PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "labeler"
+          ],
+          "properties": {
+            "labeler": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#labelerConfig"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks the permission for this method."
+        }
+      ]
+    }
+  }
+}

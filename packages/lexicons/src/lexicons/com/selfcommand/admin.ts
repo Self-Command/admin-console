@@ -3,7 +3,25 @@
  */
 
 export * as account from "./admin/account.js";
-export * as audit from "./admin/audit.js";
-export * as defs from "./admin/defs.js";
+export * as inbox from "./admin/inbox.js";
+export * as indexer from "./admin/indexer.js";
+export * as moderation from "./admin/moderation.js";
+export * as navigation from "./admin/navigation.js";
+export * as notifications from "./admin/notifications.js";
+export * as policy from "./admin/policy.js";
+export * as preferences from "./admin/preferences.js";
 export * as role from "./admin/role.js";
+export * as security from "./admin/security.js";
 export * as session from "./admin/session.js";
+export * as settings from "./admin/settings.js";
+export * as signature from "./admin/signature.js";
+export * as system from "./admin/system.js";
+export * as verification from "./admin/verification.js";
+export * as analytics from "./admin/analytics.js";
+export * as announcement from "./admin/announcement.js";
+export * as approval from "./admin/approval.js";
+export * as audit from "./admin/audit.js";
+export * as chat from "./admin/chat.js";
+export * as content from "./admin/content.js";
+export * as dashboard from "./admin/dashboard.js";
+export * as defs from "./admin/defs.js";

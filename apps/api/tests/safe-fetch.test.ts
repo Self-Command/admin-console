@@ -1,4 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { createServer, type Server } from 'node:http'
+import type { AddressInfo } from 'node:net'
+import { afterEach, describe, expect, it } from 'vitest'
 import { createSafeFetch, isPrivateAddress } from '../src/auth/safe-fetch.js'
 
 const base = {
@@ -38,6 +40,22 @@ describe('private address detection', () => {
 })
 
 describe('safe DID fetch', () => {
+  let server: Server | undefined
+
+  afterEach(async () => {
+    if (!server) return
+    await new Promise<void>((resolve) => server?.close(() => resolve()))
+    server = undefined
+  })
+
+  async function serveDocument(body: string, contentType: string): Promise<number> {
+    server = createServer((_request, response) => {
+      response.writeHead(200, { 'content-type': contentType })
+      response.end(body)
+    })
+    await new Promise<void>((resolve) => server?.listen(0, '127.0.0.1', resolve))
+    return (server.address() as AddressInfo).port
+  }
   it('rejects plain HTTP when it is disabled', async () => {
     const safeFetch = createSafeFetch(base)
     await expect(safeFetch('http://example.com/did.json')).rejects.toThrow(
@@ -67,5 +85,24 @@ describe('safe DID fetch', () => {
     await expect(safeFetch('https://127.0.0.1/did.json')).rejects.toThrow(
       'resolves to a private address',
     )
+  })
+
+  it('serves allowlisted loopback hosts and drops content-type parameters', async () => {
+    const port = await serveDocument(
+      '{"id":"did:web:localhost%3A2587"}',
+      'application/did+ld+json; charset=utf-8',
+    )
+    const safeFetch = createSafeFetch({
+      ...base,
+      allowHttp: true,
+      allowPrivateHosts: ['127.0.0.1'],
+    })
+
+    // Node's Happy Eyeballs calls the lookup hook with `all: true`.
+    const response = await safeFetch(`http://127.0.0.1:${port}/did.json`)
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get('content-type')).toBe('application/did+ld+json')
+    expect(await response.text()).toBe('{"id":"did:web:localhost%3A2587"}')
   })
 })

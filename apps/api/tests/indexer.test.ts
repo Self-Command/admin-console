@@ -172,6 +172,53 @@ describe('firehose event application', () => {
     expect(indexer.snapshot().cursor).toBe(5)
   })
 
+  it('skips accounts whose sync is paused and keeps their last known row', async () => {
+    const store = new MemoryDirectoryStore()
+    store.accounts.set(ALICE, {
+      did: ALICE,
+      handle: 'alice.test',
+      status: 'active',
+      active: true,
+    })
+    store.syncPaused.add(ALICE)
+    const indexer = createIndexer(store, fakePds({}))
+
+    indexer.applyEvent({
+      type: 'identity',
+      did: ALICE,
+      handle: 'alice.renamed.test',
+      seq: 10,
+      time: new Date('2026-10-28T10:00:00.000Z'),
+    })
+    indexer.applyEvent({
+      type: 'account',
+      did: ALICE,
+      active: false,
+      status: 'deactivated',
+      seq: 11,
+      time: new Date('2026-10-28T10:00:01.000Z'),
+    })
+    indexer.applyEvent({
+      type: 'identity',
+      did: BOB,
+      handle: 'bob.test',
+      seq: 12,
+      time: new Date('2026-10-28T10:00:02.000Z'),
+    })
+    await indexer.flush()
+
+    expect(store.accounts.get(ALICE)).toMatchObject({
+      handle: 'alice.test',
+      status: 'active',
+      active: true,
+    })
+    expect(store.accounts.get(BOB)?.handle).toBe('bob.test')
+    expect(store.batches).toHaveLength(1)
+    expect(store.batches[0]?.rows.map((row) => row.did)).toEqual([BOB])
+    expect(store.batches[0]?.cursor).toBe(12)
+    expect(indexer.snapshot().cursor).toBe(12)
+  })
+
   it('resumes from the persisted cursor after a restart', async () => {
     const store = new MemoryDirectoryStore()
     store.cursors.set(FIREHOSE_STREAM, { cursor: 20, backfillComplete: true })

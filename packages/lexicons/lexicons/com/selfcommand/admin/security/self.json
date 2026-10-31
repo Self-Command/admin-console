@@ -1,0 +1,41 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.security.self",
+  "description": "Read the calling account's own admin console access status: whether access is blocked, when and why, and its most recent aggregated access records. Requires a service JWT (com.atproto.server.getServiceAuth) and needs no workspace role. It never returns other administrators' records.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["blocked", "records"],
+          "properties": {
+            "blocked": {
+              "type": "boolean"
+            },
+            "blockedAt": {
+              "type": "string",
+              "format": "datetime"
+            },
+            "blockedBy": {
+              "type": "string",
+              "format": "did"
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "records": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#accessRecord"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

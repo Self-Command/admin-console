@@ -31,6 +31,16 @@
             "type": "string",
             "maxLength": 256,
             "description": "Case-insensitive DID prefix or handle substring match."
+          },
+          "sort": {
+            "type": "string",
+            "knownValues": ["subject", "role", "createdAt", "updatedAt"],
+            "default": "updatedAt"
+          },
+          "order": {
+            "type": "string",
+            "knownValues": ["asc", "desc"],
+            "default": "desc"
           }
         }
       },

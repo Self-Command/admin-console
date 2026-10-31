@@ -24,14 +24,8 @@
               "type": "array",
               "description": "Permissions granted by the caller's role; empty when the caller holds no binding.",
               "items": {
-                "type": "string",
-                "maxLength": 64,
-                "knownValues": [
-                  "directory.read",
-                  "role.read",
-                  "role.write",
-                  "audit.read"
-                ]
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#permission"
               }
             }
           }

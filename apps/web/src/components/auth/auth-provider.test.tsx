@@ -98,7 +98,6 @@ function Probe() {
       <button onClick={() => run(auth.callAdmin('com.selfcommand.admin.role.list'))}>
         call-admin
       </button>
-      <button onClick={() => run(auth.signInPreview('admin', 'preview-2026'))}>preview</button>
     </div>
   )
 }
@@ -258,17 +257,5 @@ describe('auth provider', () => {
 
     await waitFor(() => expect(screen.getByTestId('status').textContent).toBe('anonymous'))
     expect(window.localStorage.getItem(PDS_SESSION_KEY)).toBeNull()
-  })
-
-  it('keeps the local preview login available outside production', async () => {
-    mockFetch([])
-    renderAuth()
-    await waitFor(() => expect(screen.getByTestId('status').textContent).toBe('anonymous'))
-
-    fireEvent.click(screen.getByText('preview'))
-
-    await waitFor(() => expect(screen.getByTestId('status').textContent).toBe('authenticated'))
-    expect(screen.getByTestId('role').textContent).toBe('admin')
-    expect(screen.getByTestId('name').textContent).toBe('预览管理员')
   })
 })

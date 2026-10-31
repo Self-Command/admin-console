@@ -1,0 +1,45 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.settings.public",
+  "description": "Public branding, theme and login page configuration for unauthenticated screens. This method does not require authentication; it returns only whitelisted fields and is rate limited per source address.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["branding", "theme", "login", "version"],
+          "properties": {
+            "branding": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#publicBranding"
+            },
+            "theme": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#publicTheme"
+            },
+            "login": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#loginSettings"
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "datetime"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "RateLimited",
+          "description": "Too many requests from this source in the current window."
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.announcement.get",
+  "description": "Read one announcement, including drafts and archived records, for the admin console. Requires a service JWT obtained from the caller PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "parameters": {
+        "type": "params",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "announcement"
+          ],
+          "properties": {
+            "announcement": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#announcementView"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks announcement.read."
+        },
+        {
+          "name": "NotFound",
+          "description": "The announcement does not exist."
+        }
+      ]
+    }
+  }
+}

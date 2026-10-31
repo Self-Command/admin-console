@@ -11,6 +11,8 @@ import { createPdsFirehoseSource } from './directory/source.js'
 import { KyselyDirectoryStore } from './directory/store.js'
 import { createLogger, redactString } from './logger.js'
 import { closeServer, createAppServer } from './server.js'
+import { startMetricsScheduler } from './services/dashboard.js'
+import { createAppviewClient, createOzoneClient, createPdsAdminClient } from './upstream/client.js'
 
 async function main(): Promise<void> {
   let config
@@ -48,6 +50,9 @@ async function main(): Promise<void> {
     logger: logger.child({ component: 'indexer' }),
     config: config.indexer,
   })
+  const ozone = createOzoneClient(config, logger.child({ component: 'upstream' }))
+  const appview = createAppviewClient(config, logger.child({ component: 'upstream' }))
+  const pdsAdmin = createPdsAdminClient(config, logger.child({ component: 'upstream' }))
 
   try {
     await bootstrapAdmin(db, config, logger)
@@ -63,7 +68,16 @@ async function main(): Promise<void> {
     indexer,
     verifier,
     didResolver,
+    ozone,
+    appview,
+    pds: pdsAdmin,
+    senderDid: config.serviceDid,
     startedAt: Date.now(),
+  })
+  const stopMetrics = startMetricsScheduler({
+    db,
+    logger: logger.child({ component: 'metrics' }),
+    config,
   })
 
   let shuttingDown = false
@@ -72,6 +86,7 @@ async function main(): Promise<void> {
     shuttingDown = true
     logger.info('shutting down', { reason })
 
+    stopMetrics()
     await indexer.stop()
     await closeServer(server)
     await closeDb(db).catch((error: unknown) => {

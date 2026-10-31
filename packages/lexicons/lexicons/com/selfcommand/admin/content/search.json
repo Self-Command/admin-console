@@ -1,0 +1,118 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.content.search",
+  "description": "Search public posts through the app view and enrich them with moderation state from Ozone. Requires a service JWT obtained from the caller PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "parameters": {
+        "type": "params",
+        "properties": {
+          "q": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "author": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "Handle or DID of the author."
+          },
+          "mention": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "lang": {
+            "type": "string",
+            "maxLength": 16
+          },
+          "domain": {
+            "type": "string",
+            "maxLength": 253
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "tag": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "since": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "until": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "sort": {
+            "type": "string",
+            "knownValues": [
+              "latest",
+              "top"
+            ],
+            "default": "latest"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 25
+          },
+          "cursor": {
+            "type": "string",
+            "maxLength": 2048
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "content",
+            "moderationAvailable"
+          ],
+          "properties": {
+            "content": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#contentView"
+              }
+            },
+            "cursor": {
+              "type": "string"
+            },
+            "moderationAvailable": {
+              "type": "boolean",
+              "description": "False when Ozone is not configured; moderation state is then unknown."
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks the permission for this method."
+        },
+        {
+          "name": "NotConfigured",
+          "description": "The upstream service credential is not configured."
+        },
+        {
+          "name": "UpstreamAuthFailed",
+          "description": "The upstream service rejected the administrator credential."
+        },
+        {
+          "name": "UpstreamUnavailable",
+          "description": "The upstream service is unreachable or timed out."
+        },
+        {
+          "name": "RateLimited",
+          "description": "The upstream service rate limited the request."
+        }
+      ]
+    }
+  }
+}

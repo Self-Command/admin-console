@@ -14,6 +14,9 @@ export type IndexerSnapshot = {
   initialized: boolean
   backfillComplete: boolean
   connected: boolean
+  paused: boolean
+  pausedBy: string | null
+  pausedAt: Date | null
   lastEventAt: Date | null
   lastIndexedAt: Date | null
   cursor: number | null
@@ -82,6 +85,9 @@ export class DirectoryIndexer {
   private backfillComplete = false
   private initialized = false
   private connected = false
+  private paused = false
+  private pausedBy: string | null = null
+  private pausedAt: Date | null = null
   private lastEventAt: Date | null = null
   private lastIndexedAt: Date | null = null
   private pending = new Map<string, AccountUpsert>()
@@ -103,6 +109,9 @@ export class DirectoryIndexer {
       initialized: this.config.enabled ? this.initialized : true,
       backfillComplete: this.backfillComplete,
       connected: this.connected,
+      paused: this.paused,
+      pausedBy: this.pausedBy,
+      pausedAt: this.pausedAt,
       lastEventAt: this.lastEventAt,
       lastIndexedAt: this.lastIndexedAt,
       cursor: this.cursor,
@@ -117,6 +126,28 @@ export class DirectoryIndexer {
     return this.running
   }
 
+  async pause(actor: string): Promise<IndexerSnapshot> {
+    this.paused = true
+    this.pausedBy = actor
+    this.pausedAt = new Date()
+    await this.store.setPaused(FIREHOSE_STREAM, true, actor)
+    this.abort.abort()
+    this.abort = new AbortController()
+    this.connected = false
+    await this.running?.catch(() => {})
+    await this.store.setConnected(FIREHOSE_STREAM, false)
+    return this.snapshot()
+  }
+
+  async resume(): Promise<IndexerSnapshot> {
+    this.paused = false
+    this.pausedBy = null
+    this.pausedAt = null
+    await this.store.setPaused(FIREHOSE_STREAM, false, null)
+    if (this.config.enabled) void this.start()
+    return this.snapshot()
+  }
+
   async stop(): Promise<void> {
     this.abort.abort()
     if (this.flushTimer) {
@@ -128,6 +159,7 @@ export class DirectoryIndexer {
     })
     await this.running?.catch(() => {})
     this.connected = false
+    await this.store.setConnected(FIREHOSE_STREAM, false).catch(() => {})
   }
 
   private async runLoop(): Promise<void> {
@@ -159,10 +191,20 @@ export class DirectoryIndexer {
   }
 
   private async runOnce(signal: AbortSignal): Promise<void> {
-    const state = await this.store.getCursor(FIREHOSE_STREAM)
+    const state = await this.store.getIndexerState(FIREHOSE_STREAM)
     this.cursor = state?.cursor ?? null
     this.backfillComplete = state?.backfillComplete ?? false
+    this.paused = state?.paused ?? false
+    this.pausedBy = state?.pausedBy ?? null
+    this.pausedAt = state?.pausedAt ?? null
+    this.lastIndexedAt = state?.lastIndexedAt ?? this.lastIndexedAt
+    this.lastEventAt = state?.lastEventAt ?? this.lastEventAt
     this.initialized = true
+
+    if (this.paused) {
+      this.connected = false
+      return
+    }
 
     if (!this.backfillComplete) {
       await this.backfill(signal)
@@ -174,11 +216,17 @@ export class DirectoryIndexer {
       onConnect: () => {
         this.connected = true
         this.logger.info('firehose connected', { cursor: this.cursor })
+        void this.store.setConnected(FIREHOSE_STREAM, true).catch((error: unknown) => {
+          this.logger.warn('indexer connection state not persisted', { error })
+        })
       },
       onDisconnect: (error) => {
         if (this.connected) {
           this.connected = false
           this.logger.warn('firehose disconnected', { error })
+          void this.store.setConnected(FIREHOSE_STREAM, false).catch((persistError: unknown) => {
+            this.logger.warn('indexer connection state not persisted', { error: persistError })
+          })
         }
       },
       onEvent: (event) => this.applyEvent(event),
@@ -286,12 +334,20 @@ export class DirectoryIndexer {
 
   private async doFlush(): Promise<void> {
     if (this.pending.size === 0) return
-    const rows = [...this.pending.values()]
+    const queued = [...this.pending.values()]
     const cursor = this.queuedCursor
     this.pending = new Map()
     this.queuedCursor = null
 
+    let rows = queued
     try {
+      const paused = await this.store.listSyncPaused(queued.map((row) => row.did))
+      if (paused.size > 0) {
+        rows = queued.filter((row) => !paused.has(row.did))
+        this.logger.debug('indexer skipped accounts with paused sync', {
+          accounts: paused.size,
+        })
+      }
       await this.store.applyBatch({
         rows,
         stream: FIREHOSE_STREAM,

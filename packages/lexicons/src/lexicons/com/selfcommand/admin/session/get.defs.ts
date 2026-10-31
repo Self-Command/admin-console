@@ -15,7 +15,7 @@ export const $params = /*#__PURE__*/ l.params();
 
 export type $Params = l.InferOutput<typeof $params>;
 
-export const $output = /*#__PURE__*/ l.jsonPayload({"did":/*#__PURE__*/ l.string({"format":"did"}),"role":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.ref<AdminDefs.RoleName>((() => AdminDefs.roleName) as any)),"permissions":/*#__PURE__*/ l.array(/*#__PURE__*/ l.string<{"maxLength":64,"knownValues":["directory.read","role.read","role.write","audit.read"]}>({"maxLength":64}), )});
+export const $output = /*#__PURE__*/ l.jsonPayload({"did":/*#__PURE__*/ l.string({"format":"did"}),"role":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.ref<AdminDefs.RoleName>((() => AdminDefs.roleName) as any)),"permissions":/*#__PURE__*/ l.array(/*#__PURE__*/ l.ref<AdminDefs.Permission>((() => AdminDefs.permission) as any), )});
 
 export type $Output<B = l.BinaryData> = l.InferPayload<typeof $output, B>;
 export type $OutputBody<B = l.BinaryData> = l.InferPayloadBody<typeof $output, B>;

@@ -4,10 +4,25 @@ const dateTimeFormatter = new Intl.DateTimeFormat('zh-CN', {
   timeZone: 'Asia/Shanghai',
 })
 
+const dateFormatter = new Intl.DateTimeFormat('zh-CN', {
+  dateStyle: 'medium',
+  timeZone: 'Asia/Shanghai',
+})
+
 export function formatDateTime(iso?: string): string {
   if (!iso) return '—'
   const date = new Date(iso)
   return Number.isNaN(date.getTime()) ? '—' : dateTimeFormatter.format(date)
+}
+
+export function formatDate(iso?: string): string {
+  if (!iso) return '—'
+  const date = new Date(iso)
+  return Number.isNaN(date.getTime()) ? '—' : dateFormatter.format(date)
+}
+
+export function formatTimestamp(iso: string | undefined, format: 'date-time' | 'date'): string {
+  return format === 'date' ? formatDate(iso) : formatDateTime(iso)
 }
 
 export function truncateDid(did: string, head = 14, tail = 6): string {

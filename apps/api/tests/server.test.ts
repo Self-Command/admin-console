@@ -8,6 +8,7 @@ import type { PdsClient } from '../src/directory/pds.js'
 import type { FirehoseSource } from '../src/directory/source.js'
 import { silentLogger } from '../src/logger.js'
 import { closeServer, createAppServer } from '../src/server.js'
+import type { XrpcClient } from '../src/upstream/client.js'
 import { MemoryDirectoryStore } from './helpers/memory-store.js'
 
 const unusedSource: FirehoseSource = {
@@ -22,6 +23,17 @@ const unusedPds: PdsClient = {
   },
   async resolveHandle() {
     return null
+  },
+}
+
+const unusedUpstream: XrpcClient = {
+  name: 'unused-upstream',
+  configured: false,
+  async call() {
+    throw new Error('not used')
+  },
+  async probe() {
+    return { status: 'unavailable', detail: '未配置管理员凭据' }
   },
 }
 
@@ -57,6 +69,10 @@ describe('http server', () => {
         throw new Error('not used')
       }) as never,
       didResolver: { resolve: async () => ({ id: 'did:plc:unused' }) } as never,
+      ozone: unusedUpstream,
+      appview: unusedUpstream,
+      pds: unusedUpstream,
+      senderDid: config.serviceDid,
       startedAt: Date.now(),
     })
     await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))

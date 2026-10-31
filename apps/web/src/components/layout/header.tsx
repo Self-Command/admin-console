@@ -1,20 +1,25 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { MenuIcon } from 'lucide-react'
-import { brand } from '@/config/brand'
-import { Badge } from '@/components/ui/badge'
+import { MenuIcon, SearchIcon } from 'lucide-react'
+import { useBrand } from '@/components/brand/brand-provider'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { UserMenu } from '@/components/layout/user-menu'
-import { useAuth } from '@/components/auth/auth-provider'
+import { useWorkspace } from '@/components/layout/workspace-provider'
+import { pageTitleForPath } from '@/lib/navigation'
 
-export function Header({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
+export function Header({
+  onOpenMobileNav,
+  onOpenPalette,
+}: {
+  onOpenMobileNav: () => void
+  onOpenPalette: () => void
+}) {
   const pathname = usePathname()
-  const { preview } = useAuth()
-  const current = brand.nav.find((item) =>
-    item.href === '/' ? pathname === '/' : pathname.startsWith(item.href),
-  )
+  const { settings } = useBrand()
+  const { groups } = useWorkspace()
+  const title = pageTitleForPath(groups, pathname)
 
   return (
     <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur">
@@ -29,21 +34,25 @@ export function Header({ onOpenMobileNav }: { onOpenMobileNav: () => void }) {
           <MenuIcon />
         </Button>
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold">{current?.title ?? '管理后台'}</p>
+          <p className="truncate text-sm font-semibold">{title}</p>
           <p className="hidden truncate text-xs text-muted-foreground sm:block">
-            {brand.name}
+            {settings.branding.name}
           </p>
         </div>
         <div className="ml-auto flex items-center gap-1.5">
-          {preview ? (
-            <Badge
-              variant="warning"
-              className="hidden h-7 gap-1.5 px-2.5 sm:inline-flex"
-            >
-              <span className="size-1.5 rounded-full bg-warning" />
-              预览模式
-            </Badge>
-          ) : null}
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 text-muted-foreground"
+            onClick={onOpenPalette}
+            aria-label="搜索页面"
+          >
+            <SearchIcon className="size-3.5" />
+            <span className="hidden sm:inline">搜索页面</span>
+            <kbd className="hidden rounded border bg-muted px-1.5 font-mono text-[10px] sm:inline">
+              Ctrl K
+            </kbd>
+          </Button>
           <ThemeToggle />
           <UserMenu />
         </div>

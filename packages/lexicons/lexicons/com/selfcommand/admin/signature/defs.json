@@ -1,0 +1,91 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.signature.defs",
+  "description": "Local mirrors of the Ozone signature result shapes. The admin service only accepts references inside the com.selfcommand.admin namespace, so upstream results are normalized into these definitions.",
+  "defs": {
+    "sigDetail": {
+      "type": "object",
+      "description": "A threat signature property and value.",
+      "required": ["property", "value"],
+      "properties": {
+        "property": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "value": {
+          "type": "string",
+          "maxLength": 2048
+        }
+      }
+    },
+    "accountView": {
+      "type": "object",
+      "description": "Account information returned by Ozone signature analysis.",
+      "required": ["did", "handle", "indexedAt"],
+      "properties": {
+        "did": {
+          "type": "string",
+          "format": "did"
+        },
+        "handle": {
+          "type": "string",
+          "format": "handle"
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 320
+        },
+        "relatedRecords": {
+          "type": "array",
+          "items": {
+            "type": "unknown"
+          }
+        },
+        "indexedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "invitesDisabled": {
+          "type": "boolean"
+        },
+        "emailConfirmedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "inviteNote": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "deactivatedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "threatSignatures": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "#sigDetail"
+          }
+        }
+      }
+    },
+    "relatedAccount": {
+      "type": "object",
+      "description": "An account that shares threat signatures with the root account.",
+      "required": ["account"],
+      "properties": {
+        "account": {
+          "type": "ref",
+          "ref": "#accountView"
+        },
+        "similarities": {
+          "type": "array",
+          "items": {
+            "type": "ref",
+            "ref": "#sigDetail"
+          }
+        }
+      }
+    }
+  }
+}

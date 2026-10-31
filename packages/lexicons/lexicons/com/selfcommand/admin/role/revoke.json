@@ -14,6 +14,11 @@
             "subject": {
               "type": "string",
               "format": "did"
+            },
+            "approvalId": {
+              "type": "string",
+              "maxLength": 64,
+              "description": "Approval identifier. Revoking an administrator requires an approved request from another administrator."
             }
           }
         }
@@ -22,6 +27,10 @@
         {
           "name": "Forbidden",
           "description": "The caller has no role or the role does not allow managing role bindings."
+        },
+        {
+          "name": "ApprovalRequired",
+          "description": "Revoking an administrator requires an approval from another administrator."
         },
         {
           "name": "RoleNotFound",

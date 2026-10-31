@@ -5,15 +5,97 @@ import type { Database, RoleName } from '../db/types.js'
 import type { Logger } from '../logger.js'
 import type { Config } from '../config.js'
 
-export type Permission = 'directory.read' | 'role.read' | 'role.write' | 'audit.read'
+export type Permission =
+  | 'directory.read'
+  | 'content.read'
+  | 'content.write'
+  | 'moderation.read'
+  | 'moderation.write'
+  | 'moderation.queue.manage'
+  | 'verification.read'
+  | 'verification.write'
+  | 'notification.read'
+  | 'notification.write'
+  | 'policy.read'
+  | 'policy.write'
+  | 'account.write'
+  | 'account.admin'
+  | 'analytics.read'
+  | 'role.read'
+  | 'role.write'
+  | 'audit.read'
+  | 'settings.read'
+  | 'settings.write'
+  | 'security.read'
+  | 'security.write'
+  | 'chat.read'
+  | 'announcement.read'
+  | 'announcement.write'
+  | 'announcement.publish'
 
 const ROLE_PERMISSIONS: Record<RoleName, readonly Permission[]> = {
-  admin: ['directory.read', 'role.read', 'role.write', 'audit.read'],
-  operator: ['directory.read'],
-  viewer: ['directory.read'],
+  admin: [
+    'directory.read',
+    'content.read',
+    'content.write',
+    'moderation.read',
+    'moderation.write',
+    'moderation.queue.manage',
+    'verification.read',
+    'verification.write',
+    'notification.read',
+    'notification.write',
+    'policy.read',
+    'policy.write',
+    'account.write',
+    'account.admin',
+    'analytics.read',
+    'role.read',
+    'role.write',
+    'audit.read',
+    'settings.read',
+    'settings.write',
+    'security.read',
+    'security.write',
+    'chat.read',
+    'announcement.read',
+    'announcement.write',
+    'announcement.publish',
+  ],
+  moderator: [
+    'directory.read',
+    'content.read',
+    'content.write',
+    'moderation.read',
+    'moderation.write',
+    'verification.read',
+    'verification.write',
+    'notification.read',
+    'notification.write',
+    'policy.read',
+    'account.write',
+    'analytics.read',
+    'chat.read',
+    'announcement.read',
+  ],
+  operator: [
+    'directory.read',
+    'content.read',
+    'moderation.read',
+    'notification.read',
+    'analytics.read',
+    'announcement.read',
+  ],
+  viewer: [
+    'directory.read',
+    'content.read',
+    'moderation.read',
+    'verification.read',
+    'analytics.read',
+  ],
 }
 
-const ROLE_NAMES: readonly RoleName[] = ['admin', 'operator', 'viewer']
+const ROLE_NAMES: readonly RoleName[] = ['admin', 'moderator', 'operator', 'viewer']
 
 const ADMIN_ROLE_LOCK = 741236901
 
@@ -86,6 +168,12 @@ export async function lockRoleTable(
   await sql`select pg_advisory_xact_lock(${ADMIN_ROLE_LOCK})`.execute(trx)
 }
 
+export async function isSoleAdmin(
+  executor: Kysely<Database> | Transaction<Database>,
+): Promise<boolean> {
+  return (await countAdmins(executor)) === 1
+}
+
 export async function bootstrapAdmin(
   db: Kysely<Database>,
   config: Config,
@@ -112,7 +200,7 @@ export async function bootstrapAdmin(
         did,
         role: 'admin',
         granted_by: config.serviceDid,
-        note: 'bootstrapped from ADMIN_API_BOOTSTRAP_ADMIN_DID',
+        note: '由环境变量初始化',
       })
       .execute()
 
@@ -122,7 +210,7 @@ export async function bootstrapAdmin(
       targetType: 'role',
       target: did,
       result: 'success',
-      detail: 'first admin bootstrapped from environment on an empty role table',
+      detail: '角色表为空时，根据环境变量初始化首位管理员',
     })
 
     logger.info('bootstrap admin created', { did })

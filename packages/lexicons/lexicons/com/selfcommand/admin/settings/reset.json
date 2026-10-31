@@ -1,0 +1,65 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.settings.reset",
+  "description": "Restore one runtime setting partition, or every partition, to the built-in defaults. Requires a service JWT (com.atproto.server.getServiceAuth) and settings.write. Versions advance and revisions are recorded for every reset partition.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "section": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#settingSection"
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "approvalId": {
+              "type": "string",
+              "maxLength": 64,
+              "description": "Approval identifier. Resetting every partition requires an approved request from another administrator."
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["settings", "meta"],
+          "properties": {
+            "settings": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#settingsSections"
+            },
+            "meta": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#settingMeta"
+              }
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks settings.write."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The section is not a known partition."
+        },
+        {
+          "name": "ApprovalRequired",
+          "description": "Resetting every partition requires an approval from another administrator."
+        }
+      ]
+    }
+  }
+}

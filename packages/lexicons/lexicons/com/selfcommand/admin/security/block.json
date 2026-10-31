@@ -1,0 +1,50 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.security.block",
+  "description": "Block an account from accessing the admin console. Requires a service JWT (com.atproto.server.getServiceAuth) and security.write. The block does not affect PDS sign-in or community usage and cannot be lifted by the blocked account.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["did"],
+          "properties": {
+            "did": {
+              "type": "string",
+              "format": "did"
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["block"],
+          "properties": {
+            "block": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#accessBlock"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks security.write."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The DID is invalid or the caller tried to block themselves."
+        }
+      ]
+    }
+  }
+}

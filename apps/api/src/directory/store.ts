@@ -15,11 +15,15 @@ export type AccountUpsert = {
 
 export type AccountView = com.selfcommand.admin.defs.Account
 
+export type AccountSort = 'did' | 'handle' | 'status' | 'indexedAt'
+
 export type DirectoryListParams = {
   cursor?: string
   limit: number
   search?: string
   status?: AccountStatus
+  sort?: AccountSort
+  order?: 'asc' | 'desc'
 }
 
 export type DirectoryPage = {
@@ -33,6 +37,19 @@ export type CursorState = {
   backfillComplete: boolean
 }
 
+export type IndexerState = {
+  cursor: number | null
+  backfillComplete: boolean
+  paused: boolean
+  pausedBy: string | null
+  pausedAt: Date | null
+  lastIndexedAt: Date | null
+  lastEventAt: Date | null
+  connected: boolean
+}
+
+type AccountCursor = { v: string; did: string; s: AccountSort; o: 'asc' | 'desc' }
+
 export type ApplyBatchInput = {
   rows: AccountUpsert[]
   stream: string
@@ -42,10 +59,15 @@ export type ApplyBatchInput = {
 
 export interface DirectoryStore {
   getCursor(stream: string): Promise<CursorState | null>
+  getIndexerState(stream: string): Promise<IndexerState | null>
   applyBatch(input: ApplyBatchInput): Promise<void>
   markBackfillComplete(stream: string): Promise<void>
+  setPaused(stream: string, paused: boolean, actor: string | null): Promise<void>
+  setConnected(stream: string, connected: boolean): Promise<void>
+  countAccounts(): Promise<number>
   listAccounts(params: DirectoryListParams): Promise<DirectoryPage>
   getAccount(did: string): Promise<AccountView | null>
+  listSyncPaused(dids: readonly string[]): Promise<Set<string>>
 }
 
 function toView(row: {
@@ -87,9 +109,75 @@ export class KyselyDirectoryStore implements DirectoryStore {
     }
   }
 
+  async getIndexerState(stream: string): Promise<IndexerState | null> {
+    const row = await this.db
+      .selectFrom('admin.indexer_cursor')
+      .selectAll()
+      .where('stream', '=', stream)
+      .executeTakeFirst()
+    if (!row) return null
+    const cursor = row.cursor === null ? null : Number(row.cursor)
+    return {
+      cursor: cursor !== null && Number.isSafeInteger(cursor) ? cursor : null,
+      backfillComplete: row.backfill_complete,
+      paused: row.paused,
+      pausedBy: row.paused_by,
+      pausedAt: row.paused_at,
+      lastIndexedAt: row.last_indexed_at,
+      lastEventAt: row.last_event_at,
+      connected: row.connected,
+    }
+  }
+
+  async setPaused(stream: string, paused: boolean, actor: string | null): Promise<void> {
+    await this.db
+      .insertInto('admin.indexer_cursor')
+      .values({
+        stream,
+        cursor: null,
+        paused,
+        paused_by: paused ? actor : null,
+        paused_at: paused ? new Date() : null,
+      })
+      .onConflict((oc) =>
+        oc.column('stream').doUpdateSet({
+          paused,
+          paused_by: paused ? actor : null,
+          paused_at: paused ? sql`now()` : null,
+          updated_at: sql`now()`,
+        }),
+      )
+      .execute()
+  }
+
+  async setConnected(stream: string, connected: boolean): Promise<void> {
+    await this.db
+      .insertInto('admin.indexer_cursor')
+      .values({ stream, cursor: null, connected })
+      .onConflict((oc) =>
+        oc.column('stream').doUpdateSet({
+          connected,
+          updated_at: sql`now()`,
+        }),
+      )
+      .execute()
+  }
+
+  async countAccounts(): Promise<number> {
+    const row = await this.db
+      .selectFrom('admin.account_directory')
+      .select(sql<number>`count(*)::int`.as('count'))
+      .executeTakeFirstOrThrow()
+    return row.count
+  }
+
   async applyBatch(input: ApplyBatchInput): Promise<void> {
     const statusRows = input.rows.filter((row) => row.status !== undefined)
     const handleRows = input.rows.filter((row) => row.status === undefined)
+    const maxEventAt = input.rows.reduce<Date | null>((latest, row) => {
+      if (!row.lastEventAt) return latest
+      return !latest || row.lastEventAt > latest ? row.lastEventAt : latest
+    }, null)
 
     await this.db.transaction().execute(async (trx) => {
       if (handleRows.length > 0) {
@@ -100,6 +188,7 @@ export class KyselyDirectoryStore implements DirectoryStore {
               did: row.did,
               handle: row.handle ?? null,
               last_event_at: row.lastEventAt ?? null,
+              first_seen_at: new Date(),
             })),
           )
           .onConflict((oc) =>
@@ -122,6 +211,7 @@ export class KyselyDirectoryStore implements DirectoryStore {
               status: row.status ?? 'unknown',
               active: row.active ?? null,
               last_event_at: row.lastEventAt ?? null,
+              first_seen_at: new Date(),
             })),
           )
           .onConflict((oc) =>
@@ -142,6 +232,8 @@ export class KyselyDirectoryStore implements DirectoryStore {
           stream: input.stream,
           cursor: input.cursor === null ? null : String(input.cursor),
           backfill_complete: input.backfillComplete ?? false,
+          last_indexed_at: new Date(),
+          last_event_at: maxEventAt,
         })
         .onConflict((oc) =>
           oc.column('stream').doUpdateSet({
@@ -151,6 +243,8 @@ export class KyselyDirectoryStore implements DirectoryStore {
               else greatest(admin.indexer_cursor.cursor, excluded.cursor)
             end`,
             backfill_complete: sql`admin.indexer_cursor.backfill_complete or excluded.backfill_complete`,
+            last_indexed_at: sql`now()`,
+            last_event_at: sql`greatest(admin.indexer_cursor.last_event_at, excluded.last_event_at)`,
             updated_at: sql`now()`,
           }),
         )
@@ -172,11 +266,35 @@ export class KyselyDirectoryStore implements DirectoryStore {
   }
 
   async listAccounts(params: DirectoryListParams): Promise<DirectoryPage> {
-    const cursor = params.cursor === undefined ? undefined : decodeCursor(params.cursor)
-    if (params.cursor !== undefined && !cursor) {
-      throw new Error('invalid cursor')
+    const sort = params.sort ?? 'did'
+    const order = params.order ?? 'asc'
+    let cursor: AccountCursor | undefined
+    if (params.cursor !== undefined) {
+      const decoded = decodeCursor(params.cursor)
+      if (!decoded) throw new Error('invalid cursor')
+      const parsed = JSON.parse(decoded) as AccountCursor
+      if (
+        typeof parsed.v !== 'string' ||
+        typeof parsed.did !== 'string' ||
+        typeof parsed.s !== 'string' ||
+        (parsed.o !== 'asc' && parsed.o !== 'desc')
+      ) {
+        throw new Error('invalid cursor')
+      }
+      if (parsed.s !== sort || parsed.o !== order) throw new Error('cursor sort mismatch')
+      cursor = parsed
     }
     const search = params.search?.trim()
+
+    const column =
+      sort === 'handle'
+        ? sql`coalesce(a.handle, '')`
+        : sort === 'status'
+          ? sql`a.status`
+          : sort === 'indexedAt'
+            ? sql`a.indexed_at`
+            : sql`a.did`
+    const op = order === 'asc' ? sql`>` : sql`<`
 
     const build = (withCursor: boolean) => {
       let query = this.db.selectFrom('admin.account_directory as a')
@@ -188,13 +306,17 @@ export class KyselyDirectoryStore implements DirectoryStore {
           sql<boolean>`(a.did like ${prefix} or a.handle ilike ${contains})`,
         )
       }
-      if (withCursor && cursor) query = query.where('a.did', '>', cursor)
+      if (withCursor && cursor) {
+        const value = sort === 'indexedAt' ? sql`${cursor.v}::timestamptz` : sql`${cursor.v}`
+        query = query.where(sql<boolean>`(${column}, a.did) ${op} (${value}, ${cursor.did})`)
+      }
       return query
     }
 
     const rows = await build(true)
       .selectAll()
-      .orderBy('a.did', 'asc')
+      .orderBy(column, order)
+      .orderBy('a.did', order)
       .limit(params.limit)
       .execute()
 
@@ -203,11 +325,24 @@ export class KyselyDirectoryStore implements DirectoryStore {
       .executeTakeFirstOrThrow()
 
     const last = rows.at(-1)
+    const cursorValue = last
+      ? sort === 'handle'
+        ? (last.handle ?? '')
+        : sort === 'status'
+          ? last.status
+          : sort === 'indexedAt'
+            ? last.indexed_at.toISOString()
+            : last.did
+      : ''
     return {
       total: totalRow.count,
       accounts: rows.map(toView),
       ...(rows.length === params.limit && last
-        ? { cursor: encodeCursor(last.did) }
+        ? {
+            cursor: encodeCursor(
+              JSON.stringify({ v: cursorValue, did: last.did, s: sort, o: order } satisfies AccountCursor),
+            ),
+          }
         : {}),
     }
   }
@@ -219,5 +354,16 @@ export class KyselyDirectoryStore implements DirectoryStore {
       .where('did', '=', did)
       .executeTakeFirst()
     return row ? toView(row) : null
+  }
+
+  async listSyncPaused(dids: readonly string[]): Promise<Set<string>> {
+    if (dids.length === 0) return new Set()
+    const rows = await this.db
+      .selectFrom('admin.account_operation')
+      .select('did')
+      .where('did', 'in', [...dids])
+      .where('sync_paused', '=', true)
+      .execute()
+    return new Set(rows.map((row) => row.did))
   }
 }

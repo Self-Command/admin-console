@@ -1,0 +1,66 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.account.admin.delete",
+  "description": "Delete an account on the upstream PDS. Requires a service JWT (com.atproto.server.getServiceAuth) and account.admin. Deletion requires approval from a second administrator; with a single administrator in the workspace it executes directly. The audit trail records the target DID and the approval id.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "did"
+          ],
+          "properties": {
+            "did": {
+              "type": "string",
+              "format": "did"
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "properties": {}
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks account.admin."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The DID is invalid."
+        },
+        {
+          "name": "ApprovalRequired",
+          "description": "The action requires an approval request from another administrator."
+        },
+        {
+          "name": "NotFound",
+          "description": "The account does not exist on the upstream PDS."
+        },
+        {
+          "name": "NotConfigured",
+          "description": "The PDS administrator credential is not configured."
+        },
+        {
+          "name": "UpstreamAuthFailed",
+          "description": "The PDS rejected the administrator credential."
+        },
+        {
+          "name": "UpstreamUnavailable",
+          "description": "The PDS is unreachable or timed out."
+        },
+        {
+          "name": "RateLimited",
+          "description": "The PDS rate limited the request."
+        }
+      ]
+    }
+  }
+}

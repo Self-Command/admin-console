@@ -24,6 +24,12 @@ describe('describeAdminError', () => {
     expect(message).not.toContain('InternalError')
   })
 
+  it('asks the operator to retry later when rate limited', () => {
+    expect(describeAdminError(new AdminApiError('validation', 429, 'RateLimited'))).toBe(
+      '操作过于频繁，请稍后再试。',
+    )
+  })
+
   it('reports network failures and unknown errors', () => {
     expect(describeAdminError(new AdminApiError('network', null))).toBe(
       '无法连接后台服务，请检查网络后重试。',

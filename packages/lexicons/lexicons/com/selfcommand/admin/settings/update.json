@@ -1,0 +1,62 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.settings.update",
+  "description": "Replace one runtime setting partition. Requires a service JWT (com.atproto.server.getServiceAuth), settings.write, and the version the client last read. The change, its revision and its audit event commit in one transaction.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["section", "values", "expectedVersion"],
+          "properties": {
+            "section": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#settingSection"
+            },
+            "values": {
+              "type": "unknown",
+              "description": "Complete partition value. The server validates every key against the partition schema and rejects unknown keys."
+            },
+            "expectedVersion": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["meta"],
+          "properties": {
+            "meta": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#settingMeta"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks settings.write."
+        },
+        {
+          "name": "SettingsConflict",
+          "description": "The submitted expectedVersion does not match the current partition version."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The section or values are not valid."
+        }
+      ]
+    }
+  }
+}

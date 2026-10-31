@@ -1,0 +1,70 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.role.import",
+  "description": "Create role bindings in bulk. Requires a service JWT (com.atproto.server.getServiceAuth) and role.write. Every row is validated first; a single invalid or conflicting row rejects the whole batch. The batch and its audit event commit in one transaction.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["bindings"],
+          "properties": {
+            "bindings": {
+              "type": "array",
+              "maxLength": 500,
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#roleImportItem"
+              }
+            },
+            "batchId": {
+              "type": "string",
+              "maxLength": 64
+            },
+            "approvalId": {
+              "type": "string",
+              "maxLength": 64,
+              "description": "Approval identifier. Bulk role import requires an approved request from another administrator."
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["imported", "batchId"],
+          "properties": {
+            "imported": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "batchId": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks role.write."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "A row contains an invalid DID, role or duplicate subject."
+        },
+        {
+          "name": "RoleExists",
+          "description": "A subject already holds a role binding."
+        },
+        {
+          "name": "ApprovalRequired",
+          "description": "Bulk role import requires an approval from another administrator."
+        }
+      ]
+    }
+  }
+}

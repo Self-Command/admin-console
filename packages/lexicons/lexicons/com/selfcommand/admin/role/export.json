@@ -1,0 +1,40 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.role.export",
+  "description": "Export every role binding. Requires a service JWT (com.atproto.server.getServiceAuth) and role.read. At most 5000 bindings are returned.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["bindings", "total", "exportedAt"],
+          "properties": {
+            "bindings": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#roleBinding"
+              }
+            },
+            "total": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "exportedAt": {
+              "type": "string",
+              "format": "datetime"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks role.read."
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.announcement.public",
+  "description": "Published announcements inside their time window, for unauthenticated consumers. This method does not require authentication; it returns only whitelisted public fields and is rate limited per source address.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "parameters": {
+        "type": "params",
+        "properties": {
+          "placement": {
+            "type": "string",
+            "knownValues": [
+              "admin",
+              "app"
+            ]
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 20
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "announcements"
+          ],
+          "properties": {
+            "announcements": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#publicAnnouncementView"
+              }
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "RateLimited",
+          "description": "Too many requests from this source in the current window."
+        }
+      ]
+    }
+  }
+}

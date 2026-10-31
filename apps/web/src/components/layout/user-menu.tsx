@@ -2,7 +2,15 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ChevronDownIcon, LogOutIcon, UsersIcon } from 'lucide-react'
+import {
+  ChevronDownIcon,
+  LogOutIcon,
+  SettingsIcon,
+  ShieldCheckIcon,
+  UserRoundIcon,
+  UsersIcon,
+} from 'lucide-react'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -23,6 +31,8 @@ export function UserMenu() {
   if (!identity) return null
 
   const canReadRoles = hasPermission(identity, 'role.read')
+  const canReadSettings = hasPermission(identity, 'settings.read')
+  const canReadAudit = hasPermission(identity, 'audit.read')
 
   async function handleSignOut() {
     await signOut()
@@ -35,9 +45,9 @@ export function UserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="h-9 gap-2 px-1.5 sm:pr-2">
-          <span className="flex size-7 items-center justify-center rounded-full bg-primary/12 text-xs font-semibold text-primary">
-            {name.slice(0, 1).toUpperCase()}
-          </span>
+          <Avatar className="size-7">
+            <AvatarFallback>{name.slice(0, 1).toUpperCase()}</AvatarFallback>
+          </Avatar>
           <span className="hidden min-w-0 text-left leading-tight sm:block">
             <span className="block max-w-40 truncate text-xs font-medium">{name}</span>
             <span className="block text-[10px] text-muted-foreground">
@@ -55,6 +65,12 @@ export function UserMenu() {
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/profile">
+            <UserRoundIcon />
+            个人资料
+          </Link>
+        </DropdownMenuItem>
         {canReadRoles ? (
           <DropdownMenuItem asChild>
             <Link href="/roles">
@@ -63,6 +79,23 @@ export function UserMenu() {
             </Link>
           </DropdownMenuItem>
         ) : null}
+        {canReadSettings ? (
+          <DropdownMenuItem asChild>
+            <Link href="/settings">
+              <SettingsIcon />
+              系统设置
+            </Link>
+          </DropdownMenuItem>
+        ) : null}
+        {canReadAudit ? (
+          <DropdownMenuItem asChild>
+            <Link href="/audit">
+              <ShieldCheckIcon />
+              审计日志
+            </Link>
+          </DropdownMenuItem>
+        ) : null}
+        <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => void handleSignOut()}>
           <LogOutIcon />
           退出登录

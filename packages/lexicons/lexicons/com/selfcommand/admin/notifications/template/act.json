@@ -1,0 +1,95 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.notifications.template.act",
+  "description": "Create, update, disable or delete a notification template. Requires a service JWT obtained from the caller PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "action"
+          ],
+          "properties": {
+            "action": {
+              "type": "string",
+              "knownValues": [
+                "create",
+                "update",
+                "delete"
+              ]
+            },
+            "id": {
+              "type": "string",
+              "maxLength": 128,
+              "description": "Template identifier; required for update and delete."
+            },
+            "name": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "subject": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "contentMarkdown": {
+              "type": "string",
+              "maxLength": 20000
+            },
+            "lang": {
+              "type": "string",
+              "maxLength": 16
+            },
+            "disabled": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "template": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#templateView"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks the permission for this method."
+        },
+        {
+          "name": "NotConfigured",
+          "description": "The upstream service credential is not configured."
+        },
+        {
+          "name": "UpstreamAuthFailed",
+          "description": "The upstream service rejected the administrator credential."
+        },
+        {
+          "name": "UpstreamUnavailable",
+          "description": "The upstream service is unreachable, timed out or returned an unexpected payload."
+        },
+        {
+          "name": "RateLimited",
+          "description": "The upstream service rate limited the request."
+        },
+        {
+          "name": "NotFound",
+          "description": "The template does not exist."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The template input is invalid or the name is already in use."
+        }
+      ]
+    }
+  }
+}

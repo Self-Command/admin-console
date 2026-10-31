@@ -1,0 +1,50 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.approval.reject",
+  "description": "Reject a pending approval request. Requires a service JWT (com.atproto.server.getServiceAuth) and security.write. The requester cannot decide their own request.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["id"],
+          "properties": {
+            "id": {
+              "type": "string",
+              "maxLength": 64
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["approval"],
+          "properties": {
+            "approval": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#approval"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks security.write or tried to decide their own request."
+        },
+        {
+          "name": "ApprovalState",
+          "description": "The request is expired or already decided."
+        }
+      ]
+    }
+  }
+}

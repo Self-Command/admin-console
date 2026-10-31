@@ -1,0 +1,109 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.announcement.list",
+  "description": "List announcements in the admin console with status, placement, keyword and time-window filters. Requires a service JWT obtained from the caller PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "parameters": {
+        "type": "params",
+        "properties": {
+          "status": {
+            "type": "string",
+            "knownValues": [
+              "draft",
+              "published",
+              "archived"
+            ]
+          },
+          "placement": {
+            "type": "string",
+            "knownValues": [
+              "admin",
+              "app"
+            ]
+          },
+          "q": {
+            "type": "string",
+            "maxLength": 120,
+            "description": "Case-insensitive keyword matched against the title and body."
+          },
+          "startsAfter": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "startsBefore": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "endsAfter": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "endsBefore": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "sort": {
+            "type": "string",
+            "knownValues": [
+              "createdAt",
+              "updatedAt",
+              "startsAt"
+            ],
+            "default": "createdAt"
+          },
+          "direction": {
+            "type": "string",
+            "knownValues": [
+              "asc",
+              "desc"
+            ],
+            "default": "desc"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 50
+          },
+          "cursor": {
+            "type": "string",
+            "maxLength": 2048
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "announcements"
+          ],
+          "properties": {
+            "announcements": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#announcementView"
+              }
+            },
+            "cursor": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks announcement.read."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "A filter value is not valid."
+        }
+      ]
+    }
+  }
+}

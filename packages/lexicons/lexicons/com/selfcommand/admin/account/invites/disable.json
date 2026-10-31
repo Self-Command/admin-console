@@ -1,0 +1,69 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.account.invites.disable",
+  "description": "Disable invitation codes of one account or a set of specific codes on the upstream PDS. Requires a service JWT (com.atproto.server.getServiceAuth) and account.admin. Disabling is reversible only by issuing new codes and is audited.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "did": {
+              "type": "string",
+              "format": "did",
+              "description": "Disable every invitation code created by this account."
+            },
+            "codes": {
+              "type": "array",
+              "maxLength": 1000,
+              "items": {
+                "type": "string",
+                "maxLength": 64
+              },
+              "description": "Specific invitation codes to disable."
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "properties": {}
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks account.admin."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "Neither an account nor any code was supplied, or a value is malformed."
+        },
+        {
+          "name": "NotFound",
+          "description": "The account does not exist on the upstream PDS."
+        },
+        {
+          "name": "NotConfigured",
+          "description": "The PDS administrator credential is not configured."
+        },
+        {
+          "name": "UpstreamAuthFailed",
+          "description": "The PDS rejected the administrator credential."
+        },
+        {
+          "name": "UpstreamUnavailable",
+          "description": "The PDS is unreachable or timed out."
+        },
+        {
+          "name": "RateLimited",
+          "description": "The PDS rate limited the request."
+        }
+      ]
+    }
+  }
+}

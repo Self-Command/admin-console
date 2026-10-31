@@ -1,0 +1,86 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.settings.approvals.update",
+  "description": "Append actions to the set that requires a second administrator. The submitted list is merged with the stored additions, so no action can be removed; built-in actions are always required and cannot be excluded. The change is audited and applies immediately. Requires a service JWT obtained from the caller PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "additionalActions"
+          ],
+          "properties": {
+            "additionalActions": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#approvalAction"
+              },
+              "maxLength": 32
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "builtInActions",
+            "additionalActions",
+            "availableActions",
+            "version"
+          ],
+          "properties": {
+            "builtInActions": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#approvalAction"
+              }
+            },
+            "additionalActions": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#approvalAction"
+              }
+            },
+            "availableActions": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#approvalAction"
+              }
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "datetime"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks settings.write."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The list contains an unsupported action or a built-in action that cannot be configured."
+        }
+      ]
+    }
+  }
+}

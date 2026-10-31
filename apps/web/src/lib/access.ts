@@ -1,9 +1,18 @@
 import type { Permission } from '@/lib/roles'
 
 export const routePermissions: Readonly<Record<string, Permission>> = {
+  '/content': 'content.read',
+  '/moderation': 'moderation.read',
   '/directory': 'directory.read',
   '/roles': 'role.read',
   '/audit': 'audit.read',
+  '/security': 'security.read',
+  '/verification': 'verification.read',
+  '/notifications': 'notification.read',
+  '/announcements': 'announcement.read',
+  '/policy': 'policy.read',
+  '/settings': 'settings.read',
+  '/system': 'settings.read',
 }
 
 export function permissionForPath(pathname: string): Permission | null {
@@ -20,9 +29,9 @@ export function hasPermission(
   return identity?.permissions.includes(permission) ?? false
 }
 
-export function allowedNavItems<T extends { href: string; permission?: Permission }>(
-  items: readonly T[],
+export function hasAnyPermission(
   identity: { permissions: readonly string[] } | null | undefined,
-): T[] {
-  return items.filter((item) => !item.permission || hasPermission(identity, item.permission))
+  permissions: readonly Permission[],
+): boolean {
+  return permissions.some((permission) => hasPermission(identity, permission))
 }

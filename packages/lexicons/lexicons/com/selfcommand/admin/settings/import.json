@@ -1,0 +1,64 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.settings.import",
+  "description": "Import a settings document. Requires a service JWT (com.atproto.server.getServiceAuth) and settings.write. Every supplied partition is validated first; if any partition is invalid nothing is written.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["sections"],
+          "properties": {
+            "sections": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#settingsPatch"
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["settings", "meta", "changedSections"],
+          "properties": {
+            "settings": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#settingsSections"
+            },
+            "meta": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#settingMeta"
+              }
+            },
+            "changedSections": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#settingSection"
+              }
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks settings.write."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The document contains an unknown section, an unknown key or an invalid value."
+        }
+      ]
+    }
+  }
+}

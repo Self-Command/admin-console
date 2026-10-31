@@ -3,7 +3,9 @@
  */
 
 export * as create from "./role/create.js";
+export * as "export" from "./role/export.js";
 export * as "get" from "./role/get.js";
+export * as "import" from "./role/import.js";
 export * as list from "./role/list.js";
 export * as revoke from "./role/revoke.js";
 export * as update from "./role/update.js";

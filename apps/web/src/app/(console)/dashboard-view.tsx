@@ -7,13 +7,14 @@ import {
   ArrowUpRightIcon,
   BookUserIcon,
   CheckCircle2Icon,
-  InfoIcon,
   ScrollTextIcon,
   ShieldCheckIcon,
 } from 'lucide-react'
 import { PageHeader } from '@/components/page-header'
 import { EmptyState, ErrorState, LoadingState } from '@/components/data-state'
 import { useAuth } from '@/components/auth/auth-provider'
+import { useWorkspace } from '@/components/layout/workspace-provider'
+import { DashboardTrendsCard } from '@/components/dashboard/dashboard-trends-card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -25,17 +26,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { brand } from '@/config/brand'
-import { allowedNavItems, hasPermission } from '@/lib/access'
+import { hasPermission } from '@/lib/access'
 import { indexerHealth, type IndexerHealth } from '@/lib/accounts'
 import { useDataProvider } from '@/lib/data/use-data-provider'
 import type { AccountListResult, AuditEvent, IndexerStatus } from '@/lib/data/types'
 import { describeAdminError } from '@/lib/errors'
-import { formatDateTime, formatNumber, truncateDid } from '@/lib/format'
+import { formatNumber, formatTimestamp, truncateDid } from '@/lib/format'
 import { auditActionLabel, auditResultLabels } from '@/lib/audit'
 import { roleDescriptions, roleLabels, type RoleName } from '@/lib/roles'
 
-const ROLE_ORDER: RoleName[] = ['admin', 'operator', 'viewer']
+const ROLE_ORDER: RoleName[] = ['admin', 'moderator', 'operator', 'viewer']
 const RECENT_AUDIT_LIMIT = 5
 
 const healthMeta: Record<IndexerHealth, { label: string; variant: 'success' | 'warning' | 'muted' }> = {
@@ -73,7 +73,8 @@ function lagText(indexer: IndexerStatus): string {
 }
 
 export function DashboardView() {
-  const { identity, preview } = useAuth()
+  const { identity } = useAuth()
+  const { groups, dateFormat, features } = useWorkspace()
   const provider = useDataProvider()
   const canReadRoles = hasPermission(identity, 'role.read')
   const canReadAudit = hasPermission(identity, 'audit.read')
@@ -113,7 +114,7 @@ export function DashboardView() {
                   counts[role] = roles[index]?.total ?? 0
                   return counts
                 },
-                { admin: 0, operator: 0, viewer: 0 },
+                { admin: 0, moderator: 0, operator: 0, viewer: 0 },
               )
             : null,
           auditToday: audit ? { total: audit[1].total, denied: audit[2].total } : null,
@@ -149,13 +150,6 @@ export function DashboardView() {
           </Button>
         }
       />
-
-      {preview ? (
-        <div className="flex items-start gap-2 rounded-lg border border-dashed bg-muted/40 px-4 py-3 text-xs leading-relaxed text-muted-foreground">
-          <InfoIcon className="mt-0.5 size-4 shrink-0" />
-          界面预览：总览数据来自本地夹具。使用 PDS 账号登录后由 admin-api 返回真实的目录、角色与审计统计。
-        </div>
-      ) : null}
 
       {status === 'loading' ? <LoadingState label="正在加载总览数据" /> : null}
       {status === 'error' ? (
@@ -193,12 +187,15 @@ export function DashboardView() {
                     <p className="text-xs font-medium text-muted-foreground">角色绑定</p>
                     <p className="mt-2 text-2xl font-semibold tracking-tight tabular-nums">
                       {formatNumber(
-                        data.roleCounts.admin + data.roleCounts.operator + data.roleCounts.viewer,
+                        data.roleCounts.admin +
+                          data.roleCounts.moderator +
+                          data.roleCounts.operator +
+                          data.roleCounts.viewer,
                       )}
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      管理员 {data.roleCounts.admin} · 运营 {data.roleCounts.operator} · 只读{' '}
-                      {data.roleCounts.viewer}
+                      管理员 {data.roleCounts.admin} · 审核员 {data.roleCounts.moderator} · 运营{' '}
+                      {data.roleCounts.operator} · 只读 {data.roleCounts.viewer}
                     </p>
                   </div>
                   <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -260,6 +257,8 @@ export function DashboardView() {
             </Card>
           </div>
 
+          {features.dashboardTrends ? <DashboardTrendsCard /> : null}
+
           <div className="grid gap-4 lg:grid-cols-3">
             <Card className="lg:col-span-2">
               <CardHeader className="flex-row items-start justify-between gap-4">
@@ -280,11 +279,11 @@ export function DashboardView() {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">最近事件</p>
-                    <p className="mt-1">{formatDateTime(indexer.lastEventAt)}</p>
+                    <p className="mt-1">{formatTimestamp(indexer.lastEventAt, dateFormat)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">最近索引</p>
-                    <p className="mt-1">{formatDateTime(indexer.lastIndexedAt)}</p>
+                    <p className="mt-1">{formatTimestamp(indexer.lastIndexedAt, dateFormat)}</p>
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -306,7 +305,10 @@ export function DashboardView() {
                     const count = data.roleCounts?.[role] ?? 0
                     const total =
                       data.roleCounts
-                        ? data.roleCounts.admin + data.roleCounts.operator + data.roleCounts.viewer
+                        ? data.roleCounts.admin +
+                          data.roleCounts.moderator +
+                          data.roleCounts.operator +
+                          data.roleCounts.viewer
                         : 0
                     const percent = total ? Math.round((count / total) * 100) : 0
                     return (
@@ -341,13 +343,14 @@ export function DashboardView() {
                   <CardDescription>当前账号可进入的模块</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2.5">
-                  {allowedNavItems(brand.nav, identity)
+                  {groups
+                    .flatMap((group) => group.items)
                     .filter((item) => item.href !== '/')
                     .map((item) => {
                       const Icon = item.icon
                       return (
                         <Link
-                          key={item.href}
+                          key={item.id}
                           href={item.href}
                           className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors hover:bg-muted/60"
                         >
@@ -357,7 +360,7 @@ export function DashboardView() {
                       )
                     })}
                   <p className="pt-1 text-xs leading-relaxed text-muted-foreground">
-                    写操作与服务端角色校验由 admin-api 强制执行，界面隐藏不作为权限边界。
+                    写操作与服务端角色校验由后台服务强制执行，界面隐藏不是权限边界。
                   </p>
                 </CardContent>
               </Card>
@@ -391,7 +394,7 @@ export function DashboardView() {
                       {data.recentAudits.map((event) => (
                         <TableRow key={event.id}>
                           <TableCell className="text-xs text-muted-foreground">
-                            {formatDateTime(event.createdAt)}
+                            {formatTimestamp(event.createdAt, dateFormat)}
                           </TableCell>
                           <TableCell className="font-mono text-xs">
                             {truncateDid(event.actor, 18, 6)}

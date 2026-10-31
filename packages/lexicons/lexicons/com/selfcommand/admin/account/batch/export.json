@@ -1,0 +1,58 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.account.batch.export",
+  "description": "Export up to 500 selected accounts as JSON or CSV. Requires a service JWT (com.atproto.server.getServiceAuth) and directory.read. The export is audited with the row count and format only.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "parameters": {
+        "type": "params",
+        "required": ["dids"],
+        "properties": {
+          "dids": {
+            "type": "array",
+            "maxLength": 500,
+            "items": {
+              "type": "string",
+              "format": "did"
+            }
+          },
+          "format": {
+            "type": "string",
+            "knownValues": ["json", "csv"],
+            "default": "json"
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["count", "format", "content"],
+          "properties": {
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "format": {
+              "type": "string"
+            },
+            "content": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks directory.read."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "No identifiers were supplied or more than 500 were supplied."
+        }
+      ]
+    }
+  }
+}

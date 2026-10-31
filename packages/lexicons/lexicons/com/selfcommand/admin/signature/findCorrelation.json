@@ -1,0 +1,71 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.signature.findCorrelation",
+  "description": "Find threat signatures shared by two or more accounts. Requires moderation.read. Requires a service JWT obtained from the caller PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "parameters": {
+        "type": "params",
+        "required": [
+          "dids"
+        ],
+        "properties": {
+          "dids": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 25,
+            "items": {
+              "type": "string",
+              "format": "did"
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "details"
+          ],
+          "properties": {
+            "details": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.signature.defs#sigDetail"
+              }
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks the permission for this method."
+        },
+        {
+          "name": "NotConfigured",
+          "description": "The Ozone client credential is not configured."
+        },
+        {
+          "name": "UpstreamAuthFailed",
+          "description": "Ozone rejected the administrator credential."
+        },
+        {
+          "name": "UpstreamUnavailable",
+          "description": "Ozone is unreachable or timed out."
+        },
+        {
+          "name": "RateLimited",
+          "description": "Ozone rate limited the request."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "Ozone rejected the DID list."
+        }
+      ]
+    }
+  }
+}

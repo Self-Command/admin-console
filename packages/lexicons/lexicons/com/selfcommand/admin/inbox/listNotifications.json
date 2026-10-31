@@ -1,0 +1,106 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.inbox.listNotifications",
+  "description": "Read a user's Ozone moderation inbox without changing its read state. Requires moderation.read. Read-only. Requires a service JWT obtained from the caller PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "parameters": {
+        "type": "params",
+        "required": [
+          "did"
+        ],
+        "properties": {
+          "did": {
+            "type": "string",
+            "format": "did"
+          },
+          "section": {
+            "type": "string",
+            "knownValues": [
+              "reports",
+              "subjects",
+              "accountStatus"
+            ]
+          },
+          "reasons": {
+            "type": "array",
+            "maxItems": 6,
+            "items": {
+              "type": "string",
+              "knownValues": [
+                "reportResolved",
+                "reportReopened",
+                "actionTaken",
+                "actionReversed",
+                "appealResolved",
+                "standingChanged"
+              ]
+            }
+          },
+          "unreadOnly": {
+            "type": "boolean",
+            "default": false
+          },
+          "cursor": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 50
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "notifications"
+          ],
+          "properties": {
+            "notifications": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.inbox.defs#notificationView"
+              }
+            },
+            "cursor": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks the permission for this method."
+        },
+        {
+          "name": "NotConfigured",
+          "description": "The Ozone client credential is not configured."
+        },
+        {
+          "name": "UpstreamAuthFailed",
+          "description": "Ozone rejected the administrator credential."
+        },
+        {
+          "name": "UpstreamUnavailable",
+          "description": "Ozone is unreachable or timed out."
+        },
+        {
+          "name": "RateLimited",
+          "description": "Ozone rate limited the request."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "Ozone rejected the notification filters."
+        }
+      ]
+    }
+  }
+}

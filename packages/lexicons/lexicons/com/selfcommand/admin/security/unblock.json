@@ -1,0 +1,45 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.security.unblock",
+  "description": "Lift an admin console access block. Requires a service JWT (com.atproto.server.getServiceAuth) and security.write. The caller cannot lift their own block.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["did"],
+          "properties": {
+            "did": {
+              "type": "string",
+              "format": "did"
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["blocked"],
+          "properties": {
+            "blocked": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks security.write."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The caller tried to lift their own block."
+        }
+      ]
+    }
+  }
+}

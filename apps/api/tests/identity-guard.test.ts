@@ -18,6 +18,13 @@ function createDeps(role: string | null, auditWrites: string[]): GuardDeps {
       }),
     }),
     insertInto: (table: string) => {
+      if (table === 'admin.admin_access') {
+        return {
+          values: () => ({
+            onConflict: () => ({ execute: async () => undefined }),
+          }),
+        }
+      }
       auditWrites.push(table)
       throw new Error('session lookup must not write audit rows on success')
     },
@@ -26,7 +33,7 @@ function createDeps(role: string | null, auditWrites: string[]): GuardDeps {
   return {
     db,
     logger: silentLogger,
-    config: { serviceDid: 'did:web:admin.test' } as Config,
+    config: { serviceDid: 'did:web:admin.test', allowedIps: [] } as unknown as Config,
     verifier: async () => ({
       did: CALLER,
       didDocument: {},

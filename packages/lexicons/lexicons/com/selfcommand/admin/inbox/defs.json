@@ -1,0 +1,135 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.inbox.defs",
+  "description": "Local read-only views of a user's Ozone moderation inbox. The admin console never marks notifications read or changes user preferences.",
+  "defs": {
+    "notificationReason": {
+      "type": "string",
+      "knownValues": [
+        "reportResolved",
+        "reportReopened",
+        "actionTaken",
+        "actionReversed",
+        "appealResolved",
+        "standingChanged"
+      ]
+    },
+    "notificationSection": {
+      "type": "string",
+      "knownValues": ["reports", "subjects", "accountStatus"]
+    },
+    "notificationTargetType": {
+      "type": "string",
+      "knownValues": ["report", "subject", "standing", "unknown"]
+    },
+    "notificationTarget": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "ref",
+          "ref": "#notificationTargetType"
+        },
+        "reportId": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "subject": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "status": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "actionType": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "actionId": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "standing": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "previousStanding": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "appealOutcome": {
+          "type": "string",
+          "maxLength": 32
+        }
+      }
+    },
+    "notificationView": {
+      "type": "object",
+      "required": ["id", "reason", "target", "isRead", "createdAt"],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reason": {
+          "type": "ref",
+          "ref": "#notificationReason"
+        },
+        "section": {
+          "type": "ref",
+          "ref": "#notificationSection"
+        },
+        "target": {
+          "type": "ref",
+          "ref": "#notificationTarget"
+        },
+        "isRead": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime"
+        }
+      }
+    },
+    "unreadCounts": {
+      "type": "object",
+      "required": ["total"],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reports": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "subjects": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "accountStatus": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "notificationPreferences": {
+      "type": "object",
+      "required": ["reports", "account", "labels"],
+      "properties": {
+        "reports": {
+          "type": "boolean"
+        },
+        "account": {
+          "type": "boolean"
+        },
+        "labels": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
