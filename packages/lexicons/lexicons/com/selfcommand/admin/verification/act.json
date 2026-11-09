@@ -1,0 +1,161 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.verification.act",
+  "description": "Grant or revoke account verifications. Every grant and revocation requires an approved request. Requires a service JWT obtained from the caller PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "action"
+          ],
+          "properties": {
+            "action": {
+              "type": "string",
+              "knownValues": [
+                "grant",
+                "revoke"
+              ]
+            },
+            "verifications": {
+              "type": "array",
+              "maxLength": 100,
+              "items": {
+                "type": "ref",
+                "ref": "#grantInput"
+              },
+              "description": "Required when the action is grant."
+            },
+            "uris": {
+              "type": "array",
+              "maxLength": 100,
+              "items": {
+                "type": "string",
+                "format": "at-uri"
+              },
+              "description": "Verification record addresses to revoke; required when the action is revoke."
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 500,
+              "description": "Reason shown on the revoked verification."
+            },
+            "approvalId": {
+              "type": "string",
+              "maxLength": 64
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "verified",
+            "revoked",
+            "failed"
+          ],
+          "properties": {
+            "verified": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#verificationView"
+              }
+            },
+            "revoked": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "at-uri"
+              }
+            },
+            "failed": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "#failedVerification"
+              }
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks the permission for this method."
+        },
+        {
+          "name": "NotConfigured",
+          "description": "The upstream service credential is not configured."
+        },
+        {
+          "name": "UpstreamAuthFailed",
+          "description": "The upstream service rejected the administrator credential."
+        },
+        {
+          "name": "UpstreamUnavailable",
+          "description": "The upstream service is unreachable, timed out or returned an unexpected payload."
+        },
+        {
+          "name": "RateLimited",
+          "description": "The upstream service rate limited the request."
+        },
+        {
+          "name": "ApprovalRequired",
+          "description": "The action requires an approved request."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The verification input is invalid."
+        }
+      ]
+    },
+    "grantInput": {
+      "type": "object",
+      "required": [
+        "subject",
+        "handle",
+        "displayName"
+      ],
+      "properties": {
+        "subject": {
+          "type": "string",
+          "format": "did"
+        },
+        "handle": {
+          "type": "string",
+          "maxLength": 253
+        },
+        "displayName": {
+          "type": "string",
+          "maxLength": 200
+        }
+      }
+    },
+    "failedVerification": {
+      "type": "object",
+      "required": [
+        "message"
+      ],
+      "properties": {
+        "subject": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "uri": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    }
+  }
+}

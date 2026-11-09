@@ -1,0 +1,43 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.account.profile.get",
+  "description": "Read the operational record of a single account: note, tags and directory sync state. Requires a service JWT (com.atproto.server.getServiceAuth) and directory.read. The record is stored in the admin console only and never changes the community account.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "parameters": {
+        "type": "params",
+        "required": ["did"],
+        "properties": {
+          "did": {
+            "type": "string",
+            "format": "did"
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["operation"],
+          "properties": {
+            "operation": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#accountOperation"
+            },
+            "account": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#account"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks directory.read."
+        }
+      ]
+    }
+  }
+}

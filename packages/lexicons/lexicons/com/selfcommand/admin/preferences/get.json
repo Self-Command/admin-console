@@ -1,0 +1,23 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.preferences.get",
+  "description": "Read the calling account's personal display preferences. Requires a service JWT (com.atproto.server.getServiceAuth); no workspace role is required.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["preferences"],
+          "properties": {
+            "preferences": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#preferences"
+            }
+          }
+        }
+      }
+    }
+  }
+}

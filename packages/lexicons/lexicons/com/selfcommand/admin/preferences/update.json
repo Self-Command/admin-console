@@ -1,0 +1,42 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.preferences.update",
+  "description": "Replace the calling account's personal display preferences. Requires a service JWT (com.atproto.server.getServiceAuth); no workspace role is required. Preferences never change roles or permissions.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["preferences"],
+          "properties": {
+            "preferences": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#preferences"
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["preferences"],
+          "properties": {
+            "preferences": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#preferences"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "InvalidRequest",
+          "description": "A preference value is outside the accepted range."
+        }
+      ]
+    }
+  }
+}

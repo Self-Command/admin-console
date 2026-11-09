@@ -1,0 +1,119 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.moderation.event.list",
+  "description": "List moderation events recorded by Ozone. Requires a service JWT obtained from the caller PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "parameters": {
+        "type": "params",
+        "properties": {
+          "subject": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "did": {
+            "type": "string",
+            "format": "did"
+          },
+          "includeAllUserRecords": {
+            "type": "boolean",
+            "default": false
+          },
+          "types": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "maxLength": 10
+          },
+          "createdBy": {
+            "type": "string",
+            "format": "did"
+          },
+          "createdAfter": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "createdBefore": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "hasComment": {
+            "type": "boolean"
+          },
+          "comment": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "direction": {
+            "type": "string",
+            "knownValues": [
+              "asc",
+              "desc"
+            ],
+            "default": "desc"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 50
+          },
+          "cursor": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "batchId": {
+            "type": "string",
+            "maxLength": 256
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "events"
+          ],
+          "properties": {
+            "events": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#eventView"
+              }
+            },
+            "cursor": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks the permission for this method."
+        },
+        {
+          "name": "NotConfigured",
+          "description": "The upstream service credential is not configured."
+        },
+        {
+          "name": "UpstreamAuthFailed",
+          "description": "The upstream service rejected the administrator credential."
+        },
+        {
+          "name": "UpstreamUnavailable",
+          "description": "The upstream service is unreachable or timed out."
+        },
+        {
+          "name": "RateLimited",
+          "description": "The upstream service rate limited the request."
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.moderation.status.query",
+  "description": "Query the moderation status Ozone keeps for accounts, records and conversations. Requires a service JWT obtained from the caller PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "parameters": {
+        "type": "params",
+        "properties": {
+          "subject": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "subjectType": {
+            "type": "string",
+            "knownValues": [
+              "account",
+              "record",
+              "message",
+              "conversation"
+            ]
+          },
+          "reviewState": {
+            "type": "string",
+            "knownValues": [
+              "open",
+              "closed",
+              "escalated",
+              "none"
+            ]
+          },
+          "takendown": {
+            "type": "boolean"
+          },
+          "lastReviewedBy": {
+            "type": "string",
+            "format": "did"
+          },
+          "reportedAfter": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "reportedBefore": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "reviewedAfter": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "reviewedBefore": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 50
+          },
+          "cursor": {
+            "type": "string",
+            "maxLength": 2048
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "statuses"
+          ],
+          "properties": {
+            "statuses": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#statusView"
+              }
+            },
+            "cursor": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks the permission for this method."
+        },
+        {
+          "name": "NotConfigured",
+          "description": "The upstream service credential is not configured."
+        },
+        {
+          "name": "UpstreamAuthFailed",
+          "description": "The upstream service rejected the administrator credential."
+        },
+        {
+          "name": "UpstreamUnavailable",
+          "description": "The upstream service is unreachable or timed out."
+        },
+        {
+          "name": "RateLimited",
+          "description": "The upstream service rate limited the request."
+        }
+      ]
+    }
+  }
+}

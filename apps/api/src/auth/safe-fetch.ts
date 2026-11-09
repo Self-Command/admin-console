@@ -10,11 +10,15 @@ export type SafeFetchOptions = {
   maxBytes: number
 }
 
+type LookupAddress = { address: string; family: number }
+
 type LookupCallback = (
   error: NodeJS.ErrnoException | null,
-  address: string,
+  address: string | LookupAddress[],
   family?: number,
 ) => void
+
+type LookupOptions = { family?: number; all?: boolean }
 
 function normalizeHost(hostname: string): string {
   const lower = hostname.toLowerCase()
@@ -71,20 +75,30 @@ function expectedAddressAllowed(
 }
 
 function makeLookup(allowPrivate: boolean) {
-  return (hostname: string, options: { family?: number }, callback: LookupCallback) => {
+  return (hostname: string, options: LookupOptions | number, callback: LookupCallback) => {
+    const lookupOptions: LookupOptions =
+      typeof options === 'number' ? { family: options } : options
     const literalFamily = isIP(hostname)
     if (literalFamily !== 0) {
       if (!expectedAddressAllowed(hostname, allowPrivate)) {
         callback(blockedError(hostname), '', 0)
         return
       }
-      callback(null, hostname, literalFamily)
+      if (lookupOptions.all) {
+        callback(null, [{ address: hostname, family: literalFamily }])
+      } else {
+        callback(null, hostname, literalFamily)
+      }
       return
     }
 
     dnsLookup(
       hostname,
-      { all: true, family: options.family === 4 || options.family === 6 ? options.family : 0 },
+      {
+        all: true,
+        family:
+          lookupOptions.family === 4 || lookupOptions.family === 6 ? lookupOptions.family : 0,
+      },
       (error, addresses) => {
         if (error) {
           callback(error, '', 0)
@@ -93,11 +107,19 @@ function makeLookup(allowPrivate: boolean) {
         const usable = addresses.filter((entry) =>
           expectedAddressAllowed(entry.address, allowPrivate),
         )
-        const chosen = usable[0]
-        if (!chosen) {
+        if (usable.length === 0) {
           callback(blockedError(hostname), '', 0)
           return
         }
+        // Node enables Happy Eyeballs by default and asks for every address.
+        if (lookupOptions.all) {
+          callback(
+            null,
+            usable.map((entry) => ({ address: entry.address, family: entry.family })),
+          )
+          return
+        }
+        const chosen = usable[0]!
         callback(null, chosen.address, chosen.family)
       },
     )
@@ -196,11 +218,18 @@ export function createSafeFetch(options: SafeFetchOptions): typeof fetch {
             chunks.push(chunk)
           })
           response.on('end', () => {
+            const headers = toHeaders(response.headers)
+            // DID document validators match the bare media type, while some PLC
+            // implementations append "; charset=utf-8".
+            const contentType = headers.get('content-type')
+            if (contentType) {
+              headers.set('content-type', contentType.split(';')[0]?.trim() ?? contentType)
+            }
             resolve(
               new Response(Buffer.concat(chunks), {
                 status,
                 statusText: response.statusMessage,
-                headers: toHeaders(response.headers),
+                headers,
               }),
             )
           })

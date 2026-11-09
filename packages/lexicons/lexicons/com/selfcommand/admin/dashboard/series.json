@@ -1,0 +1,57 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.dashboard.series",
+  "description": "Read generated daily operational metrics for the last 7, 30 or 90 days. Requires a service JWT (com.atproto.server.getServiceAuth) and directory.read. Days without generated data are omitted rather than interpolated.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "parameters": {
+        "type": "params",
+        "properties": {
+          "days": {
+            "type": "integer",
+            "minimum": 7,
+            "maximum": 90,
+            "default": 30
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["days", "points", "indexerEnabled"],
+          "properties": {
+            "days": {
+              "type": "integer"
+            },
+            "points": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#dailyMetric"
+              }
+            },
+            "indexerEnabled": {
+              "type": "boolean"
+            },
+            "generatedAt": {
+              "type": "string",
+              "format": "datetime"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks directory.read."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The range is not 7, 30 or 90 days."
+        }
+      ]
+    }
+  }
+}

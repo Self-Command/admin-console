@@ -11,7 +11,7 @@ type $nsid = typeof $nsid;
 
 export { $nsid };
 
-export const $params = /*#__PURE__*/ l.params({"cursor":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":2048})),"limit":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.withDefault(/*#__PURE__*/ l.integer({"minimum":1,"maximum":100}), 50)),"role":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string<{"knownValues":["admin","operator","viewer"]}>()),"search":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":256}))});
+export const $params = /*#__PURE__*/ l.params({"cursor":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":2048})),"limit":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.withDefault(/*#__PURE__*/ l.integer({"minimum":1,"maximum":100}), 50)),"role":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string<{"knownValues":["admin","operator","viewer"]}>()),"search":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":256})),"sort":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.withDefault(/*#__PURE__*/ l.string<{"knownValues":["subject","role","createdAt","updatedAt"]}>(), "updatedAt")),"order":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.withDefault(/*#__PURE__*/ l.string<{"knownValues":["asc","desc"]}>(), "desc"))});
 
 export type $Params = l.InferOutput<typeof $params>;
 

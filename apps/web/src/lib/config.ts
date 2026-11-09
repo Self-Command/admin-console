@@ -10,5 +10,14 @@ export const adminApiConfig = {
 export const defaultPdsUrl =
   process.env.NEXT_PUBLIC_DEFAULT_PDS?.trim() || 'https://bsky.social'
 
-// Local demo login is compiled out of production builds.
-export const previewAuthEnabled = process.env.NODE_ENV !== 'production'
+export const appVersion = process.env.NEXT_PUBLIC_APP_VERSION?.trim() || '1.0.0'
+
+// Development-only shortcut. It is compiled out of production builds and stays
+// disabled unless the environment explicitly opts in.
+export const devLoginConfig = {
+  enabled:
+    process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_DEV_LOGIN === '1',
+  service: process.env.NEXT_PUBLIC_DEV_LOGIN_SERVICE?.trim() ?? '',
+  identifier: process.env.NEXT_PUBLIC_DEV_LOGIN_IDENTIFIER?.trim() ?? '',
+  password: process.env.NEXT_PUBLIC_DEV_LOGIN_PASSWORD ?? '',
+}

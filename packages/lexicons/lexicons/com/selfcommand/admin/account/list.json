@@ -33,6 +33,16 @@
               "deleted",
               "unknown"
             ]
+          },
+          "sort": {
+            "type": "string",
+            "knownValues": ["did", "handle", "status", "indexedAt"],
+            "default": "did"
+          },
+          "order": {
+            "type": "string",
+            "knownValues": ["asc", "desc"],
+            "default": "asc"
           }
         }
       },

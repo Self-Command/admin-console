@@ -11,7 +11,7 @@ type $nsid = typeof $nsid;
 
 export { $nsid };
 
-export const $params = /*#__PURE__*/ l.params({"cursor":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":2048})),"limit":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.withDefault(/*#__PURE__*/ l.integer({"minimum":1,"maximum":100}), 50)),"search":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":256})),"status":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string<{"knownValues":["active","deactivated","suspended","takendown","deleted","unknown"]}>())});
+export const $params = /*#__PURE__*/ l.params({"cursor":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":2048})),"limit":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.withDefault(/*#__PURE__*/ l.integer({"minimum":1,"maximum":100}), 50)),"search":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":256})),"status":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string<{"knownValues":["active","deactivated","suspended","takendown","deleted","unknown"]}>()),"sort":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.withDefault(/*#__PURE__*/ l.string<{"knownValues":["did","handle","status","indexedAt"]}>(), "did")),"order":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.withDefault(/*#__PURE__*/ l.string<{"knownValues":["asc","desc"]}>(), "asc"))});
 
 export type $Params = l.InferOutput<typeof $params>;
 

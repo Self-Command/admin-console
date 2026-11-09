@@ -1,0 +1,75 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.moderation.account.overview",
+  "description": "Load the moderation overview of an account: status, recent events and open reports. Requires a service JWT obtained from the caller PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "parameters": {
+        "type": "params",
+        "properties": {
+          "did": {
+            "type": "string",
+            "format": "did"
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "overview",
+            "events",
+            "reports"
+          ],
+          "properties": {
+            "overview": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#accountOverview"
+            },
+            "status": {
+              "type": "unknown"
+            },
+            "events": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#eventView"
+              }
+            },
+            "reports": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#reportView"
+              }
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks the permission for this method."
+        },
+        {
+          "name": "NotConfigured",
+          "description": "The upstream service credential is not configured."
+        },
+        {
+          "name": "UpstreamAuthFailed",
+          "description": "The upstream service rejected the administrator credential."
+        },
+        {
+          "name": "UpstreamUnavailable",
+          "description": "The upstream service is unreachable or timed out."
+        },
+        {
+          "name": "RateLimited",
+          "description": "The upstream service rate limited the request."
+        }
+      ]
+    }
+  }
+}

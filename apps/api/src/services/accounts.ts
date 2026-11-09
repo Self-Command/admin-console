@@ -30,6 +30,13 @@ function parseAccountStatus(value: string): AccountStatus | null {
 
 export function toIndexerStatus(snapshot: IndexerSnapshot): IndexerStatusView {
   return {
+    enabled: snapshot.enabled,
+    paused: snapshot.paused,
+    ...(snapshot.pausedBy ? { pausedBy: snapshot.pausedBy as IndexerStatusView['pausedBy'] } : {}),
+    ...(snapshot.pausedAt
+      ? { pausedAt: snapshot.pausedAt.toISOString() as IndexerStatusView['pausedAt'] }
+      : {}),
+    connected: snapshot.connected,
     backfillComplete: snapshot.backfillComplete,
     ...(snapshot.lastEventAt
       ? { lastEventAt: snapshot.lastEventAt.toISOString() as IndexerStatusView['lastEventAt'] }
@@ -43,6 +50,9 @@ export function toIndexerStatus(snapshot: IndexerSnapshot): IndexerStatusView {
   }
 }
 
+const ACCOUNT_SORTS = ['did', 'handle', 'status', 'indexedAt'] as const
+type AccountSort = (typeof ACCOUNT_SORTS)[number]
+
 export async function listAccounts(
   store: DirectoryStore,
   params: {
@@ -50,6 +60,8 @@ export async function listAccounts(
     limit: number
     search?: string
     status?: string
+    sort?: string
+    order?: string
   },
   snapshot: IndexerSnapshot,
 ): Promise<AccountListResult> {
@@ -66,12 +78,28 @@ export async function listAccounts(
       message: 'status is not a known account status',
     })
   }
-  const page = await store.listAccounts({
-    cursor: params.cursor,
-    limit: params.limit,
-    search: params.search,
-    status: status ?? undefined,
-  })
+  const sort = (params.sort ?? 'did') as AccountSort
+  if (!(ACCOUNT_SORTS as readonly string[]).includes(sort)) {
+    throw new LexServerError(400, { error: 'InvalidRequest', message: 'unknown sort field' })
+  }
+  const order = params.order ?? 'asc'
+  if (order !== 'asc' && order !== 'desc') {
+    throw new LexServerError(400, { error: 'InvalidRequest', message: 'order must be asc or desc' })
+  }
+
+  let page
+  try {
+    page = await store.listAccounts({
+      cursor: params.cursor,
+      limit: params.limit,
+      search: params.search,
+      status: status ?? undefined,
+      sort,
+      order,
+    })
+  } catch {
+    throw new LexServerError(400, { error: 'InvalidRequest', message: 'invalid cursor' })
+  }
   return { ...page, indexer: toIndexerStatus(snapshot) }
 }
 

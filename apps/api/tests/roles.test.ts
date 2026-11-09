@@ -15,6 +15,8 @@ const PERMISSIONS: readonly Permission[] = [
   'role.read',
   'role.write',
   'audit.read',
+  'settings.read',
+  'settings.write',
 ]
 
 describe('role permission matrix', () => {
@@ -30,13 +32,16 @@ describe('role permission matrix', () => {
       expect(roleAllows(role, 'role.read')).toBe(false)
       expect(roleAllows(role, 'role.write')).toBe(false)
       expect(roleAllows(role, 'audit.read')).toBe(false)
+      expect(roleAllows(role, 'settings.read')).toBe(false)
+      expect(roleAllows(role, 'settings.write')).toBe(false)
     }
   })
 })
 
 describe('role and DID validation', () => {
-  it('accepts only the three known role names', () => {
+  it('accepts only the four known role names', () => {
     expect(parseRole('admin')).toBe('admin')
+    expect(parseRole('moderator')).toBe('moderator')
     expect(parseRole('operator')).toBe('operator')
     expect(parseRole('viewer')).toBe('viewer')
     expect(parseRole('superuser')).toBeNull()
@@ -59,14 +64,54 @@ describe('session view', () => {
     expect(sessionView('did:plc:admin', 'admin')).toEqual({
       did: 'did:plc:admin',
       role: 'admin',
-      permissions: ['directory.read', 'role.read', 'role.write', 'audit.read'],
+      permissions: [
+        'directory.read',
+        'content.read',
+        'content.write',
+        'moderation.read',
+        'moderation.write',
+        'moderation.queue.manage',
+        'verification.read',
+        'verification.write',
+        'notification.read',
+        'notification.write',
+        'policy.read',
+        'policy.write',
+        'account.write',
+        'account.admin',
+        'analytics.read',
+        'role.read',
+        'role.write',
+        'audit.read',
+        'settings.read',
+        'settings.write',
+        'security.read',
+        'security.write',
+        'chat.read',
+        'announcement.read',
+        'announcement.write',
+        'announcement.publish',
+      ],
     })
     expect(sessionView('did:plc:viewer', 'viewer')).toEqual({
       did: 'did:plc:viewer',
       role: 'viewer',
-      permissions: ['directory.read'],
+      permissions: [
+        'directory.read',
+        'content.read',
+        'moderation.read',
+        'verification.read',
+        'analytics.read',
+      ],
     })
-    expect(rolePermissions('operator')).toEqual(['directory.read'])
+    expect(rolePermissions('operator')).toEqual([
+      'directory.read',
+      'content.read',
+      'moderation.read',
+      'notification.read',
+      'analytics.read',
+      'announcement.read',
+    ])
   })
 
   it('omits the role and returns no permissions for an unbound caller', () => {

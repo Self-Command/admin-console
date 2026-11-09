@@ -22,6 +22,11 @@
             "note": {
               "type": "string",
               "maxLength": 200
+            },
+            "approvalId": {
+              "type": "string",
+              "maxLength": 64,
+              "description": "Approval identifier. Demoting an administrator requires an approved request from another administrator."
             }
           }
         }
@@ -51,6 +56,10 @@
         {
           "name": "LastAdmin",
           "description": "The change would leave no admin in the workspace."
+        },
+        {
+          "name": "ApprovalRequired",
+          "description": "Demoting an administrator requires an approval from another administrator."
         },
         {
           "name": "InvalidRequest",

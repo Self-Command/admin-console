@@ -1,7 +1,17 @@
 import { AdminApiError } from '@/lib/api/admin-client'
 
+export function isNotConfigured(error: unknown): boolean {
+  return error instanceof AdminApiError && error.code === 'NotConfigured'
+}
+
 export function describeAdminError(error: unknown): string {
+  if (isNotConfigured(error)) {
+    return '该功能需要账号服务管理员凭据，当前部署尚未配置，请联系部署管理员完成配置后重试。'
+  }
   if (error instanceof AdminApiError) {
+    if (error.status === 429 || error.code === 'RateLimited') {
+      return '操作过于频繁，请稍后再试。'
+    }
     if (error.kind === 'unauthorized') return '登录状态已失效，请重新登录。'
     if (error.kind === 'forbidden') return '当前账号没有执行该操作的权限。'
     if (error.kind === 'conflict') return '操作与当前数据冲突，请刷新后重试。'

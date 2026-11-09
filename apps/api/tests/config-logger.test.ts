@@ -31,6 +31,30 @@ describe('configuration', () => {
     expect(config.indexer.enabled).toBe(false)
   })
 
+  it('parses the moderator session settings used for Ozone service auth', () => {
+    const config = loadConfig({
+      ...minimalEnv,
+      ADMIN_API_OZONE_DID: 'did:plc:ozone',
+      ADMIN_API_OZONE_MODERATOR_HANDLE: 'moderator.test',
+      ADMIN_API_OZONE_MODERATOR_PASSWORD: 'app-password',
+    })
+
+    expect(config.ozoneDid).toBe('did:plc:ozone')
+    expect(config.ozoneModeratorHandle).toBe('moderator.test')
+    expect(config.ozoneModeratorPassword).toBe('app-password')
+  })
+
+  it('rejects partially configured moderator settings and a malformed Ozone DID', () => {
+    expect(() =>
+      loadConfig({ ...minimalEnv, ADMIN_API_OZONE_DID: 'did:plc:ozone' }),
+    ).toThrowError(
+      'ADMIN_API_OZONE_DID, ADMIN_API_OZONE_MODERATOR_HANDLE and ADMIN_API_OZONE_MODERATOR_PASSWORD must be set together',
+    )
+    expect(() =>
+      loadConfig({ ...minimalEnv, ADMIN_API_OZONE_DID: 'ozone' }),
+    ).toThrowError('ADMIN_API_OZONE_DID must be a DID')
+  })
+
   it('rejects malformed values without echoing them', () => {
     expect(() =>
       loadConfig({ ...minimalEnv, ADMIN_API_PORT: 'not-a-port' }),

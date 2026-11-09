@@ -1,0 +1,114 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.account.defs",
+  "description": "Local shapes for public account browsing proxied from the AppView. The admin service normalizes upstream profile, list and post views into these definitions.",
+  "defs": {
+    "accountSummary": {
+      "type": "object",
+      "required": ["did", "handle"],
+      "properties": {
+        "did": {
+          "type": "string",
+          "format": "did"
+        },
+        "handle": {
+          "type": "string",
+          "format": "handle"
+        },
+        "displayName": {
+          "type": "string",
+          "maxLength": 640
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 3000
+        },
+        "avatar": {
+          "type": "string",
+          "format": "uri"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "datetime"
+        }
+      }
+    },
+    "listSummary": {
+      "type": "object",
+      "required": ["uri", "cid", "name", "purpose", "indexedAt"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "cid": {
+          "type": "string",
+          "format": "cid"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "purpose": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 3000
+        },
+        "avatar": {
+          "type": "string",
+          "format": "uri"
+        },
+        "listItemCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "indexedAt": {
+          "type": "string",
+          "format": "datetime"
+        }
+      }
+    },
+    "postVisibility": {
+      "type": "string",
+      "description": "Whether a post returned by the AppView can be displayed. notFound, blocked and unavailable come from upstream viewer state and are never rendered as empty content.",
+      "knownValues": ["available", "notFound", "blocked", "unavailable"]
+    },
+    "postSummary": {
+      "type": "object",
+      "required": ["uri", "cid", "text", "indexedAt", "visibility"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "cid": {
+          "type": "string",
+          "format": "cid"
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 10000
+        },
+        "indexedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "visibility": {
+          "type": "ref",
+          "ref": "#postVisibility"
+        },
+        "replyParentUri": {
+          "type": "string",
+          "format": "at-uri"
+        },
+        "embedType": {
+          "type": "string",
+          "maxLength": 128
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.policy.safelink.act",
+  "description": "Add, update or remove an external link safety rule. Every change requires an approved request. Requires a service JWT obtained from the caller PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "operation",
+            "input"
+          ],
+          "properties": {
+            "operation": {
+              "type": "string",
+              "knownValues": [
+                "safelink.add",
+                "safelink.update",
+                "safelink.remove"
+              ]
+            },
+            "input": {
+              "type": "unknown",
+              "description": "Operation input. add and update take url, pattern, action, reason, source and comment; remove takes url, pattern, source and comment."
+            },
+            "approvalId": {
+              "type": "string",
+              "maxLength": 64
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "event": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#safelinkEventView"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks the permission for this method."
+        },
+        {
+          "name": "NotConfigured",
+          "description": "The upstream service credential is not configured."
+        },
+        {
+          "name": "UpstreamAuthFailed",
+          "description": "The upstream service rejected the administrator credential."
+        },
+        {
+          "name": "UpstreamUnavailable",
+          "description": "The upstream service is unreachable, timed out or returned an unexpected payload."
+        },
+        {
+          "name": "RateLimited",
+          "description": "The upstream service rate limited the request."
+        },
+        {
+          "name": "ApprovalRequired",
+          "description": "Link safety changes require an approved request."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The rule input is invalid or conflicts with an existing rule."
+        },
+        {
+          "name": "NotFound",
+          "description": "The rule does not exist."
+        }
+      ]
+    }
+  }
+}

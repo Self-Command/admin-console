@@ -1,0 +1,133 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.moderation.queue.act",
+  "description": "Create, update, delete, assign or route report queues. Requires queue management permission. Requires a service JWT obtained from the caller PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "action"
+          ],
+          "properties": {
+            "action": {
+              "type": "string",
+              "knownValues": [
+                "create",
+                "update",
+                "delete",
+                "assign",
+                "unassign",
+                "route"
+              ]
+            },
+            "queueId": {
+              "type": "integer"
+            },
+            "name": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "enabled": {
+              "type": "boolean"
+            },
+            "subjectTypes": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#moderationSubjectType"
+              },
+              "maxLength": 4
+            },
+            "collection": {
+              "type": "string",
+              "format": "nsid"
+            },
+            "reportTypes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 128
+              },
+              "maxLength": 50
+            },
+            "did": {
+              "type": "string",
+              "format": "did"
+            },
+            "startReportId": {
+              "type": "integer"
+            },
+            "endReportId": {
+              "type": "integer"
+            },
+            "migrateToQueueId": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [],
+          "properties": {
+            "queue": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#queueView"
+            },
+            "deleted": {
+              "type": "boolean"
+            },
+            "reportsMigrated": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "assigned": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "unmatched": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks the permission for this method."
+        },
+        {
+          "name": "NotConfigured",
+          "description": "The upstream service credential is not configured."
+        },
+        {
+          "name": "UpstreamAuthFailed",
+          "description": "The upstream service rejected the administrator credential."
+        },
+        {
+          "name": "UpstreamUnavailable",
+          "description": "The upstream service is unreachable or timed out."
+        },
+        {
+          "name": "RateLimited",
+          "description": "The upstream service rate limited the request."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The queue change is invalid."
+        }
+      ]
+    }
+  }
+}

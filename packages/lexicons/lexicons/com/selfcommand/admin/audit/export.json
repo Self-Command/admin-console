@@ -1,0 +1,80 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.audit.export",
+  "description": "Export audit events matching the filters as UTF-8 CSV or JSON. Requires a service JWT (com.atproto.server.getServiceAuth) and audit.read. The row count is capped by the configured export limit.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "parameters": {
+        "type": "params",
+        "required": ["format"],
+        "properties": {
+          "format": {
+            "type": "string",
+            "knownValues": ["csv", "json"]
+          },
+          "actor": {
+            "type": "string",
+            "format": "did"
+          },
+          "action": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "target": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "result": {
+            "type": "string",
+            "knownValues": ["success", "denied", "error"]
+          },
+          "since": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "until": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["filename", "contentType", "content", "rows"],
+          "properties": {
+            "filename": {
+              "type": "string"
+            },
+            "contentType": {
+              "type": "string"
+            },
+            "content": {
+              "type": "string"
+            },
+            "rows": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks audit.read."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "A filter value is not valid."
+        },
+        {
+          "name": "ExportTooLarge",
+          "description": "The filtered result exceeds the configured export limit."
+        }
+      ]
+    }
+  }
+}

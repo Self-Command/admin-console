@@ -1,0 +1,140 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.moderation.report.list",
+  "description": "List moderation reports from Ozone with the same filters as the official console. Requires a service JWT obtained from the caller PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "parameters": {
+        "type": "params",
+        "properties": {
+          "status": {
+            "type": "string",
+            "knownValues": [
+              "open",
+              "closed",
+              "escalated",
+              "queued",
+              "assigned"
+            ],
+            "default": "open"
+          },
+          "queueId": {
+            "type": "integer",
+            "description": "Use -1 for unassigned reports."
+          },
+          "reportTypes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "maxLength": 10
+          },
+          "subject": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "did": {
+            "type": "string",
+            "format": "did"
+          },
+          "subjectType": {
+            "type": "string",
+            "knownValues": [
+              "account",
+              "record",
+              "message",
+              "conversation"
+            ]
+          },
+          "reportedAfter": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "reportedBefore": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "assignedTo": {
+            "type": "string",
+            "format": "did"
+          },
+          "isMuted": {
+            "type": "boolean",
+            "description": "When set, only muted or only unmuted reports are returned."
+          },
+          "sort": {
+            "type": "string",
+            "knownValues": [
+              "createdAt",
+              "updatedAt"
+            ],
+            "default": "createdAt"
+          },
+          "direction": {
+            "type": "string",
+            "knownValues": [
+              "asc",
+              "desc"
+            ],
+            "default": "desc"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 50
+          },
+          "cursor": {
+            "type": "string",
+            "maxLength": 2048
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "reports"
+          ],
+          "properties": {
+            "reports": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#reportView"
+              }
+            },
+            "cursor": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks the permission for this method."
+        },
+        {
+          "name": "NotConfigured",
+          "description": "The upstream service credential is not configured."
+        },
+        {
+          "name": "UpstreamAuthFailed",
+          "description": "The upstream service rejected the administrator credential."
+        },
+        {
+          "name": "UpstreamUnavailable",
+          "description": "The upstream service is unreachable or timed out."
+        },
+        {
+          "name": "RateLimited",
+          "description": "The upstream service rate limited the request."
+        }
+      ]
+    }
+  }
+}

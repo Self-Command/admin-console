@@ -1,12 +1,12 @@
 'use client'
 
 import { useEffect, useState, type FormEvent } from 'react'
+import dynamic from 'next/dynamic'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   ArrowRightIcon,
   EyeIcon,
   EyeOffIcon,
-  KeyRoundIcon,
   LoaderCircleIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -14,21 +14,27 @@ import { Input } from '@/components/ui/input'
 import { useAuth, NoAdminRoleError } from '@/components/auth/auth-provider'
 import { AdminApiError } from '@/lib/api/admin-client'
 import { PdsAuthError } from '@/lib/auth/pds'
-import { PREVIEW_CREDENTIALS } from '@/lib/auth/preview-auth'
-import { defaultPdsUrl, previewAuthEnabled } from '@/lib/config'
+import { defaultPdsUrl, devLoginConfig } from '@/lib/config'
+
+const DevLoginPanel = devLoginConfig.enabled
+  ? dynamic(
+      () => import('@/components/auth/dev-login-panel').then((module) => module.DevLoginPanel),
+      { ssr: false },
+    )
+  : null
 
 function loginErrorMessage(error: unknown): string {
   if (error instanceof NoAdminRoleError) {
-    return '该账号没有后台角色，请联系管理员开通后再登录。'
+    return '该账号没有后台角色。请联系管理员开通角色后再登录。'
   }
   if (error instanceof PdsAuthError) {
-    if (error.reason === 'invalid_credentials') return '账号或密码不正确，请重试。'
-    if (error.reason === 'network') return '无法连接 PDS，请检查地址与网络后重试。'
-    return '无法识别 PDS 的响应，请确认地址正确。'
+    if (error.reason === 'invalid_credentials') return '账号或密码不正确，请检查后重试。'
+    if (error.reason === 'network') return '无法连接账号服务，请检查地址与网络后重试。'
+    return '无法识别账号服务的响应，请确认服务地址正确。'
   }
   if (error instanceof AdminApiError) {
     if (error.kind === 'forbidden' || error.kind === 'unauthorized') {
-      return '该账号没有后台角色，请联系管理员开通后再登录。'
+      return '该账号没有后台角色。请联系管理员开通角色后再登录。'
     }
     if (error.kind === 'network') return '无法连接后台服务，请稍后重试。'
     return '后台服务暂时不可用，请稍后重试。'
@@ -39,7 +45,7 @@ function loginErrorMessage(error: unknown): string {
 export function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { status, signIn, signInPreview } = useAuth()
+  const { status, signIn } = useAuth()
   const [service, setService] = useState(defaultPdsUrl)
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
@@ -71,22 +77,11 @@ export function LoginForm() {
     }
   }
 
-  async function handlePreview() {
-    setError(null)
-    setPending(true)
-    try {
-      await signInPreview(PREVIEW_CREDENTIALS.username, PREVIEW_CREDENTIALS.password)
-      router.replace(target)
-    } catch (cause) {
-      failWith(cause)
-    }
-  }
-
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
       <div className="space-y-1.5">
         <label htmlFor="service" className="text-sm font-medium">
-          PDS 地址
+          账号服务地址
         </label>
         <Input
           id="service"
@@ -98,6 +93,7 @@ export function LoginForm() {
           onChange={(event) => setService(event.target.value)}
           required
         />
+        <p className="text-xs text-muted-foreground">填写账号所在服务地址，由管理员提供。</p>
       </div>
       <div className="space-y-1.5">
         <label htmlFor="identifier" className="text-sm font-medium">
@@ -106,7 +102,7 @@ export function LoginForm() {
         <Input
           id="identifier"
           name="identifier"
-          placeholder="alice.example.com"
+          placeholder="name.example.com"
           autoComplete="username"
           value={identifier}
           onChange={(event) => setIdentifier(event.target.value)}
@@ -118,14 +114,14 @@ export function LoginForm() {
           <label htmlFor="password" className="text-sm font-medium">
             密码
           </label>
-          <span className="text-xs text-muted-foreground">应用专用密码</span>
+          <span className="text-xs text-muted-foreground">使用应用专用密码</span>
         </div>
         <div className="relative">
           <Input
             id="password"
             name="password"
             type={showPassword ? 'text' : 'password'}
-            placeholder="••••••••"
+            placeholder="请输入应用专用密码"
             autoComplete="current-password"
             className="pr-9"
             value={password}
@@ -154,28 +150,14 @@ export function LoginForm() {
         登录
       </Button>
 
-      {previewAuthEnabled ? (
-        <div className="flex items-start gap-2 rounded-lg border border-dashed bg-muted/40 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
-          <KeyRoundIcon className="mt-0.5 size-3.5 shrink-0" />
-          <div className="space-y-2">
-            <p>
-              界面预览账号{' '}
-              <span className="font-mono text-foreground">{PREVIEW_CREDENTIALS.username}</span>
-              ，密码{' '}
-              <span className="font-mono text-foreground">{PREVIEW_CREDENTIALS.password}</span>
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-7 w-full text-xs"
-              onClick={handlePreview}
-              disabled={pending}
-            >
-              使用预览账号登录
-            </Button>
-          </div>
-        </div>
+      {DevLoginPanel ? (
+        <DevLoginPanel
+          onFill={(values) => {
+            if (values.service) setService(values.service)
+            setIdentifier(values.identifier)
+            setPassword(values.password)
+          }}
+        />
       ) : null}
     </form>
   )

@@ -1,0 +1,33 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.indexer.status",
+  "description": "Read indexer connection, pause and freshness state. Requires a service JWT (com.atproto.server.getServiceAuth) and settings.read.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["status", "accounts"],
+          "properties": {
+            "status": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#indexerStatus"
+            },
+            "accounts": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks settings.read."
+        }
+      ]
+    }
+  }
+}

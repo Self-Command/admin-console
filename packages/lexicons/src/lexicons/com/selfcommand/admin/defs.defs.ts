@@ -10,15 +10,25 @@ type $nsid = typeof $nsid;
 
 export { $nsid };
 
-/** Role assigned to an administrator account. admin manages role bindings and reads audit events; operator holds future business read/write permissions; viewer is read-only over the account directory. */
-type RoleName = "admin" | "operator" | "viewer" | l.UnknownString;
+/** Role assigned to an administrator account. admin manages settings, roles, approvals and account administration; moderator handles reports, content and verification actions; operator holds read access to the directory, content and reports; viewer is read-only over the directory, content, reports, verification and analytics. */
+type RoleName = "admin" | "moderator" | "operator" | "viewer" | l.UnknownString;
 
 export type { RoleName };
 
-/** Role assigned to an administrator account. admin manages role bindings and reads audit events; operator holds future business read/write permissions; viewer is read-only over the account directory. */
-const roleName = /*#__PURE__*/ l.string<{"knownValues":["admin","operator","viewer"]}>();
+/** Role assigned to an administrator account. admin manages settings, roles, approvals and account administration; moderator handles reports, content and verification actions; operator holds read access to the directory, content and reports; viewer is read-only over the directory, content, reports, verification and analytics. */
+const roleName = /*#__PURE__*/ l.string<{"knownValues":["admin","moderator","operator","viewer"]}>();
 
 export { roleName };
+
+/** Server-side permission granted to a role. UI visibility is never a substitute for these checks. */
+type Permission = "directory.read" | "content.read" | "content.write" | "moderation.read" | "moderation.write" | "moderation.queue.manage" | "verification.read" | "verification.write" | "notification.read" | "notification.write" | "policy.read" | "policy.write" | "account.write" | "account.admin" | "analytics.read" | "role.read" | "role.write" | "audit.read" | "settings.read" | "settings.write" | "security.read" | "security.write" | "chat.read" | "announcement.read" | "announcement.write" | "announcement.publish" | l.UnknownString;
+
+export type { Permission };
+
+/** Server-side permission granted to a role. UI visibility is never a substitute for these checks. */
+const permission = /*#__PURE__*/ l.string<{"knownValues":["directory.read","content.read","content.write","moderation.read","moderation.write","moderation.queue.manage","verification.read","verification.write","notification.read","notification.write","policy.read","policy.write","account.write","account.admin","analytics.read","role.read","role.write","audit.read","settings.read","settings.write","security.read","security.write","chat.read","announcement.read","announcement.write","announcement.publish"]}>();
+
+export { permission };
 
 type RoleBinding = { $type?: "com.selfcommand.admin.defs#roleBinding";
 
@@ -63,11 +73,36 @@ type AuditEvent = { $type?: "com.selfcommand.admin.defs#auditEvent";"id":number;
   /**
    * Redacted supplementary information; never contains tokens, passwords, email addresses or full request bodies.
    */
-  "detail"?:string };
+  "detail"?:string;
+
+  /**
+   * Request identifier returned to the caller in the x-request-id response header.
+   */
+  "requestId"?:string;
+
+  /**
+   * Source address of the request, truncated to a safe length.
+   */
+  "actorIp"?:string;
+
+  /**
+   * Client identifier supplied by the caller, truncated to a safe length.
+   */
+  "userAgent"?:string;
+
+  /**
+   * Structured value before a change; only present on mutation events.
+   */
+  "before"?:l.LexMap;
+
+  /**
+   * Structured value after a change; only present on mutation events.
+   */
+  "after"?:l.LexMap };
 
 export type { AuditEvent };
 
-const auditEvent = /*#__PURE__*/ l.typedObject<AuditEvent>($nsid, "auditEvent", /*#__PURE__*/ l.object({"id":/*#__PURE__*/ l.integer({"minimum":1}),"createdAt":/*#__PURE__*/ l.string({"format":"datetime"}),"actor":/*#__PURE__*/ l.string({"format":"did"}),"action":/*#__PURE__*/ l.string({"maxLength":128}),"targetType":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":64})),"target":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":512})),"result":/*#__PURE__*/ l.ref<AuditResult>((() => auditResult) as any),"detail":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":2000}))}));
+const auditEvent = /*#__PURE__*/ l.typedObject<AuditEvent>($nsid, "auditEvent", /*#__PURE__*/ l.object({"id":/*#__PURE__*/ l.integer({"minimum":1}),"createdAt":/*#__PURE__*/ l.string({"format":"datetime"}),"actor":/*#__PURE__*/ l.string({"format":"did"}),"action":/*#__PURE__*/ l.string({"maxLength":128}),"targetType":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":64})),"target":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":512})),"result":/*#__PURE__*/ l.ref<AuditResult>((() => auditResult) as any),"detail":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":2000})),"requestId":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":128})),"actorIp":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":64})),"userAgent":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":256})),"before":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.lexMap()),"after":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.lexMap())}));
 
 export { auditEvent };
 
@@ -92,7 +127,7 @@ const account = /*#__PURE__*/ l.typedObject<Account>($nsid, "account", /*#__PURE
 
 export { account };
 
-type IndexerStatus = { $type?: "com.selfcommand.admin.defs#indexerStatus";"backfillComplete":boolean;"lastEventAt"?:l.DatetimeString;"lastIndexedAt"?:l.DatetimeString;
+type IndexerStatus = { $type?: "com.selfcommand.admin.defs#indexerStatus";"enabled"?:boolean;"paused"?:boolean;"pausedBy"?:l.DidString;"pausedAt"?:l.DatetimeString;"connected"?:boolean;"backfillComplete":boolean;"lastEventAt"?:l.DatetimeString;"lastIndexedAt"?:l.DatetimeString;
 
   /**
    * Opaque firehose cursor persisted by the indexer.
@@ -101,6 +136,624 @@ type IndexerStatus = { $type?: "com.selfcommand.admin.defs#indexerStatus";"backf
 
 export type { IndexerStatus };
 
-const indexerStatus = /*#__PURE__*/ l.typedObject<IndexerStatus>($nsid, "indexerStatus", /*#__PURE__*/ l.object({"backfillComplete":/*#__PURE__*/ l.boolean(),"lastEventAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"lastIndexedAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"cursor":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string())}));
+const indexerStatus = /*#__PURE__*/ l.typedObject<IndexerStatus>($nsid, "indexerStatus", /*#__PURE__*/ l.object({"enabled":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.boolean()),"paused":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.boolean()),"pausedBy":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"did"})),"pausedAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"connected":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.boolean()),"backfillComplete":/*#__PURE__*/ l.boolean(),"lastEventAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"lastIndexedAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"cursor":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string())}));
 
 export { indexerStatus };
+
+/** Runtime setting partition. Every partition is versioned and audited independently. */
+type SettingSection = "branding" | "theme" | "login" | "navigation" | "features" | "ui" | "integrations" | "audit" | "indexer" | l.UnknownString;
+
+export type { SettingSection };
+
+/** Runtime setting partition. Every partition is versioned and audited independently. */
+const settingSection = /*#__PURE__*/ l.string<{"knownValues":["branding","theme","login","navigation","features","ui","integrations","audit","indexer"]}>();
+
+export { settingSection };
+
+type LegalLink = { $type?: "com.selfcommand.admin.defs#legalLink";"label":string;"url":string };
+
+export type { LegalLink };
+
+const legalLink = /*#__PURE__*/ l.typedObject<LegalLink>($nsid, "legalLink", /*#__PURE__*/ l.object({"label":/*#__PURE__*/ l.string({"maxLength":40}),"url":/*#__PURE__*/ l.string({"maxLength":512})}));
+
+export { legalLink };
+
+type BrandingSettings = { $type?: "com.selfcommand.admin.defs#brandingSettings";"name":string;"shortName":string;"description":string;"logoSource":"icon" | "url" | "upload" | l.UnknownString;"logoUrl"?:string;"faviconUrl"?:string;"supportUrl"?:string;"docsUrl"?:string };
+
+export type { BrandingSettings };
+
+const brandingSettings = /*#__PURE__*/ l.typedObject<BrandingSettings>($nsid, "brandingSettings", /*#__PURE__*/ l.object({"name":/*#__PURE__*/ l.string({"maxLength":60}),"shortName":/*#__PURE__*/ l.string({"maxLength":24}),"description":/*#__PURE__*/ l.string({"maxLength":200}),"logoSource":/*#__PURE__*/ l.string<{"knownValues":["icon","url","upload"]}>(),"logoUrl":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":512})),"faviconUrl":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":512})),"supportUrl":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":512})),"docsUrl":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":512}))}));
+
+export { brandingSettings };
+
+type ThemeSettings = { $type?: "com.selfcommand.admin.defs#themeSettings";"primaryLight":string;"primaryDark":string;"accentLight":string;"accentDark":string;"radius":number;"density":"comfortable" | "compact" | l.UnknownString;"fontFamily":"sans" | "serif" | l.UnknownString;"defaultMode":"light" | "dark" | "system" | l.UnknownString };
+
+export type { ThemeSettings };
+
+const themeSettings = /*#__PURE__*/ l.typedObject<ThemeSettings>($nsid, "themeSettings", /*#__PURE__*/ l.object({"primaryLight":/*#__PURE__*/ l.string({"maxLength":7}),"primaryDark":/*#__PURE__*/ l.string({"maxLength":7}),"accentLight":/*#__PURE__*/ l.string({"maxLength":7}),"accentDark":/*#__PURE__*/ l.string({"maxLength":7}),"radius":/*#__PURE__*/ l.integer({"minimum":0,"maximum":24}),"density":/*#__PURE__*/ l.string<{"knownValues":["comfortable","compact"]}>(),"fontFamily":/*#__PURE__*/ l.string<{"knownValues":["sans","serif"]}>(),"defaultMode":/*#__PURE__*/ l.string<{"knownValues":["light","dark","system"]}>()}));
+
+export { themeSettings };
+
+type LoginSettings = { $type?: "com.selfcommand.admin.defs#loginSettings";"headline":string;"subheadline":string;"footer":string;"background":"gradient" | "solid" | "none" | l.UnknownString;"legalLinks":(LegalLink)[] };
+
+export type { LoginSettings };
+
+const loginSettings = /*#__PURE__*/ l.typedObject<LoginSettings>($nsid, "loginSettings", /*#__PURE__*/ l.object({"headline":/*#__PURE__*/ l.string({"maxLength":80}),"subheadline":/*#__PURE__*/ l.string({"maxLength":160}),"footer":/*#__PURE__*/ l.string({"maxLength":200}),"background":/*#__PURE__*/ l.string<{"knownValues":["gradient","solid","none"]}>(),"legalLinks":/*#__PURE__*/ l.array(/*#__PURE__*/ l.ref<LegalLink>((() => legalLink) as any), {"maxLength":5})}));
+
+export { loginSettings };
+
+type NavItem = { $type?: "com.selfcommand.admin.defs#navItem";"id":string;"label"?:string;"href"?:string;"icon"?:string;"hidden":boolean };
+
+export type { NavItem };
+
+const navItem = /*#__PURE__*/ l.typedObject<NavItem>($nsid, "navItem", /*#__PURE__*/ l.object({"id":/*#__PURE__*/ l.string({"maxLength":64}),"label":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":40})),"href":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":512})),"icon":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":32})),"hidden":/*#__PURE__*/ l.boolean()}));
+
+export { navItem };
+
+type NavGroup = { $type?: "com.selfcommand.admin.defs#navGroup";"id":string;"label":string;"items":(NavItem)[] };
+
+export type { NavGroup };
+
+const navGroup = /*#__PURE__*/ l.typedObject<NavGroup>($nsid, "navGroup", /*#__PURE__*/ l.object({"id":/*#__PURE__*/ l.string({"maxLength":32}),"label":/*#__PURE__*/ l.string({"maxLength":40}),"items":/*#__PURE__*/ l.array(/*#__PURE__*/ l.ref<NavItem>((() => navItem) as any), {"maxLength":20})}));
+
+export { navGroup };
+
+type NavigationSettings = { $type?: "com.selfcommand.admin.defs#navigationSettings";"groups":(NavGroup)[] };
+
+export type { NavigationSettings };
+
+const navigationSettings = /*#__PURE__*/ l.typedObject<NavigationSettings>($nsid, "navigationSettings", /*#__PURE__*/ l.object({"groups":/*#__PURE__*/ l.array(/*#__PURE__*/ l.ref<NavGroup>((() => navGroup) as any), {"maxLength":8})}));
+
+export { navigationSettings };
+
+type FeatureSettings = { $type?: "com.selfcommand.admin.defs#featureSettings";"auditExport":boolean;"roleBulk":boolean;"indexerControls":boolean;"systemStatus":boolean;
+
+  /**
+   * Shows account note, tag, sync and export entry points. Visibility only; permissions still apply.
+   */
+  "accountOperations":boolean;
+
+  /**
+   * Shows the approval center entry point. High-risk actions still require an approval server-side.
+   */
+  "approvals":boolean;
+
+  /**
+   * Shows the access activity and block entry points. Visibility only; security.read still applies.
+   */
+  "securityCenter":boolean;
+
+  /**
+   * Shows daily metric trends on the dashboard.
+   */
+  "dashboardTrends":boolean };
+
+export type { FeatureSettings };
+
+const featureSettings = /*#__PURE__*/ l.typedObject<FeatureSettings>($nsid, "featureSettings", /*#__PURE__*/ l.object({"auditExport":/*#__PURE__*/ l.boolean(),"roleBulk":/*#__PURE__*/ l.boolean(),"indexerControls":/*#__PURE__*/ l.boolean(),"systemStatus":/*#__PURE__*/ l.boolean(),"accountOperations":/*#__PURE__*/ l.boolean(),"approvals":/*#__PURE__*/ l.boolean(),"securityCenter":/*#__PURE__*/ l.boolean(),"dashboardTrends":/*#__PURE__*/ l.boolean()}));
+
+export { featureSettings };
+
+type UiSettings = { $type?: "com.selfcommand.admin.defs#uiSettings";"pageSize":number;"dateFormat":"date-time" | "date" | l.UnknownString };
+
+export type { UiSettings };
+
+const uiSettings = /*#__PURE__*/ l.typedObject<UiSettings>($nsid, "uiSettings", /*#__PURE__*/ l.object({"pageSize":/*#__PURE__*/ l.integer({"minimum":1,"maximum":100}),"dateFormat":/*#__PURE__*/ l.string<{"knownValues":["date-time","date"]}>()}));
+
+export { uiSettings };
+
+type IntegrationSettings = { $type?: "com.selfcommand.admin.defs#integrationSettings";"ozoneUrl"?:string;"pdsUrl"?:string };
+
+export type { IntegrationSettings };
+
+const integrationSettings = /*#__PURE__*/ l.typedObject<IntegrationSettings>($nsid, "integrationSettings", /*#__PURE__*/ l.object({"ozoneUrl":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":512})),"pdsUrl":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":512}))}));
+
+export { integrationSettings };
+
+type AuditSettings = { $type?: "com.selfcommand.admin.defs#auditSettings";"exportMaxRows":number };
+
+export type { AuditSettings };
+
+const auditSettings = /*#__PURE__*/ l.typedObject<AuditSettings>($nsid, "auditSettings", /*#__PURE__*/ l.object({"exportMaxRows":/*#__PURE__*/ l.integer({"minimum":100,"maximum":10000})}));
+
+export { auditSettings };
+
+type IndexerSettings = { $type?: "com.selfcommand.admin.defs#indexerSettings";"lagWarningSeconds":number };
+
+export type { IndexerSettings };
+
+const indexerSettings = /*#__PURE__*/ l.typedObject<IndexerSettings>($nsid, "indexerSettings", /*#__PURE__*/ l.object({"lagWarningSeconds":/*#__PURE__*/ l.integer({"minimum":60,"maximum":86400})}));
+
+export { indexerSettings };
+
+type SettingsSections = { $type?: "com.selfcommand.admin.defs#settingsSections";"branding":BrandingSettings;"theme":ThemeSettings;"login":LoginSettings;"navigation":NavigationSettings;"features":FeatureSettings;"ui":UiSettings;"integrations":IntegrationSettings;"audit":AuditSettings;"indexer":IndexerSettings };
+
+export type { SettingsSections };
+
+const settingsSections = /*#__PURE__*/ l.typedObject<SettingsSections>($nsid, "settingsSections", /*#__PURE__*/ l.object({"branding":/*#__PURE__*/ l.ref<BrandingSettings>((() => brandingSettings) as any),"theme":/*#__PURE__*/ l.ref<ThemeSettings>((() => themeSettings) as any),"login":/*#__PURE__*/ l.ref<LoginSettings>((() => loginSettings) as any),"navigation":/*#__PURE__*/ l.ref<NavigationSettings>((() => navigationSettings) as any),"features":/*#__PURE__*/ l.ref<FeatureSettings>((() => featureSettings) as any),"ui":/*#__PURE__*/ l.ref<UiSettings>((() => uiSettings) as any),"integrations":/*#__PURE__*/ l.ref<IntegrationSettings>((() => integrationSettings) as any),"audit":/*#__PURE__*/ l.ref<AuditSettings>((() => auditSettings) as any),"indexer":/*#__PURE__*/ l.ref<IndexerSettings>((() => indexerSettings) as any)}));
+
+export { settingsSections };
+
+/** Partial settings document used by import. Omitted partitions keep their current values; every supplied partition is validated before any write. */
+type SettingsPatch = { $type?: "com.selfcommand.admin.defs#settingsPatch";"branding"?:BrandingSettings;"theme"?:ThemeSettings;"login"?:LoginSettings;"navigation"?:NavigationSettings;"features"?:FeatureSettings;"ui"?:UiSettings;"integrations"?:IntegrationSettings;"audit"?:AuditSettings;"indexer"?:IndexerSettings };
+
+export type { SettingsPatch };
+
+/** Partial settings document used by import. Omitted partitions keep their current values; every supplied partition is validated before any write. */
+const settingsPatch = /*#__PURE__*/ l.typedObject<SettingsPatch>($nsid, "settingsPatch", /*#__PURE__*/ l.object({"branding":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.ref<BrandingSettings>((() => brandingSettings) as any)),"theme":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.ref<ThemeSettings>((() => themeSettings) as any)),"login":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.ref<LoginSettings>((() => loginSettings) as any)),"navigation":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.ref<NavigationSettings>((() => navigationSettings) as any)),"features":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.ref<FeatureSettings>((() => featureSettings) as any)),"ui":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.ref<UiSettings>((() => uiSettings) as any)),"integrations":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.ref<IntegrationSettings>((() => integrationSettings) as any)),"audit":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.ref<AuditSettings>((() => auditSettings) as any)),"indexer":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.ref<IndexerSettings>((() => indexerSettings) as any))}));
+
+export { settingsPatch };
+
+type SettingMeta = { $type?: "com.selfcommand.admin.defs#settingMeta";"section":SettingSection;"version":number;"updatedAt":l.DatetimeString;"updatedBy"?:l.DidString };
+
+export type { SettingMeta };
+
+const settingMeta = /*#__PURE__*/ l.typedObject<SettingMeta>($nsid, "settingMeta", /*#__PURE__*/ l.object({"section":/*#__PURE__*/ l.ref<SettingSection>((() => settingSection) as any),"version":/*#__PURE__*/ l.integer({"minimum":0}),"updatedAt":/*#__PURE__*/ l.string({"format":"datetime"}),"updatedBy":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"did"}))}));
+
+export { settingMeta };
+
+type SettingRevision = { $type?: "com.selfcommand.admin.defs#settingRevision";"id":number;"section":SettingSection;"version":number;"actor":l.DidString;"reason"?:string;"requestId"?:string;"createdAt":l.DatetimeString;"before":l.LexMap;"after":l.LexMap };
+
+export type { SettingRevision };
+
+const settingRevision = /*#__PURE__*/ l.typedObject<SettingRevision>($nsid, "settingRevision", /*#__PURE__*/ l.object({"id":/*#__PURE__*/ l.integer({"minimum":1}),"section":/*#__PURE__*/ l.ref<SettingSection>((() => settingSection) as any),"version":/*#__PURE__*/ l.integer({"minimum":1}),"actor":/*#__PURE__*/ l.string({"format":"did"}),"reason":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":200})),"requestId":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":128})),"createdAt":/*#__PURE__*/ l.string({"format":"datetime"}),"before":/*#__PURE__*/ l.lexMap(),"after":/*#__PURE__*/ l.lexMap()}));
+
+export { settingRevision };
+
+type Preferences = { $type?: "com.selfcommand.admin.defs#preferences";"themeMode"?:"light" | "dark" | "system" | l.UnknownString;"density"?:"comfortable" | "compact" | l.UnknownString;"pageSize"?:number;"dateFormat"?:"date-time" | "date" | l.UnknownString;"savedViews"?:(SavedView)[];"filterMacros"?:(FilterMacro)[] };
+
+export type { Preferences };
+
+const preferences = /*#__PURE__*/ l.typedObject<Preferences>($nsid, "preferences", /*#__PURE__*/ l.object({"themeMode":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string<{"knownValues":["light","dark","system"]}>()),"density":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string<{"knownValues":["comfortable","compact"]}>()),"pageSize":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":1,"maximum":100})),"dateFormat":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string<{"knownValues":["date-time","date"]}>()),"savedViews":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.array(/*#__PURE__*/ l.ref<SavedView>((() => savedView) as any), {"maxLength":10})),"filterMacros":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.array(/*#__PURE__*/ l.ref<FilterMacro>((() => filterMacro) as any), {"maxLength":20}))}));
+
+export { preferences };
+
+type PublicBranding = { $type?: "com.selfcommand.admin.defs#publicBranding";"name":string;"shortName":string;"description":string;"logoSource":"icon" | "url" | "upload" | l.UnknownString;"logoUrl"?:string;"faviconUrl"?:string;"supportUrl"?:string;"docsUrl"?:string };
+
+export type { PublicBranding };
+
+const publicBranding = /*#__PURE__*/ l.typedObject<PublicBranding>($nsid, "publicBranding", /*#__PURE__*/ l.object({"name":/*#__PURE__*/ l.string(),"shortName":/*#__PURE__*/ l.string(),"description":/*#__PURE__*/ l.string(),"logoSource":/*#__PURE__*/ l.string<{"knownValues":["icon","url","upload"]}>(),"logoUrl":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string()),"faviconUrl":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string()),"supportUrl":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string()),"docsUrl":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string())}));
+
+export { publicBranding };
+
+type PublicTheme = { $type?: "com.selfcommand.admin.defs#publicTheme";"primaryLight":string;"primaryDark":string;"accentLight":string;"accentDark":string;"radius":number;"density":string;"fontFamily":string;"defaultMode":string };
+
+export type { PublicTheme };
+
+const publicTheme = /*#__PURE__*/ l.typedObject<PublicTheme>($nsid, "publicTheme", /*#__PURE__*/ l.object({"primaryLight":/*#__PURE__*/ l.string(),"primaryDark":/*#__PURE__*/ l.string(),"accentLight":/*#__PURE__*/ l.string(),"accentDark":/*#__PURE__*/ l.string(),"radius":/*#__PURE__*/ l.integer(),"density":/*#__PURE__*/ l.string(),"fontFamily":/*#__PURE__*/ l.string(),"defaultMode":/*#__PURE__*/ l.string()}));
+
+export { publicTheme };
+
+type SystemComponent = { $type?: "com.selfcommand.admin.defs#systemComponent";"name":string;"status":"ok" | "degraded" | "unavailable" | l.UnknownString;"latencyMs"?:number;"checkedAt"?:l.DatetimeString;"detail"?:string };
+
+export type { SystemComponent };
+
+const systemComponent = /*#__PURE__*/ l.typedObject<SystemComponent>($nsid, "systemComponent", /*#__PURE__*/ l.object({"name":/*#__PURE__*/ l.string(),"status":/*#__PURE__*/ l.string<{"knownValues":["ok","degraded","unavailable"]}>(),"latencyMs":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0})),"checkedAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"detail":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":200}))}));
+
+export { systemComponent };
+
+type MigrationInfo = { $type?: "com.selfcommand.admin.defs#migrationInfo";"executed":(string)[];"pending":(string)[] };
+
+export type { MigrationInfo };
+
+const migrationInfo = /*#__PURE__*/ l.typedObject<MigrationInfo>($nsid, "migrationInfo", /*#__PURE__*/ l.object({"executed":/*#__PURE__*/ l.array(/*#__PURE__*/ l.string(), ),"pending":/*#__PURE__*/ l.array(/*#__PURE__*/ l.string(), )}));
+
+export { migrationInfo };
+
+type RoleImportItem = { $type?: "com.selfcommand.admin.defs#roleImportItem";"subject":l.DidString;"role":RoleName;"note"?:string };
+
+export type { RoleImportItem };
+
+const roleImportItem = /*#__PURE__*/ l.typedObject<RoleImportItem>($nsid, "roleImportItem", /*#__PURE__*/ l.object({"subject":/*#__PURE__*/ l.string({"format":"did"}),"role":/*#__PURE__*/ l.ref<RoleName>((() => roleName) as any),"note":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":200}))}));
+
+export { roleImportItem };
+
+type SystemStatus = { $type?: "com.selfcommand.admin.defs#systemStatus";"version":string;"commit"?:string;"startedAt":l.DatetimeString;"uptimeSeconds":number;"database":SystemComponent;"migrations":MigrationInfo;"indexer":IndexerStatus;"pds":SystemComponent;"ozone"?:SystemComponent;"appview"?:SystemComponent;"ozoneDaemon"?:SystemComponent;"externalServices"?:(ExternalService)[] };
+
+export type { SystemStatus };
+
+const systemStatus = /*#__PURE__*/ l.typedObject<SystemStatus>($nsid, "systemStatus", /*#__PURE__*/ l.object({"version":/*#__PURE__*/ l.string(),"commit":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string()),"startedAt":/*#__PURE__*/ l.string({"format":"datetime"}),"uptimeSeconds":/*#__PURE__*/ l.integer({"minimum":0}),"database":/*#__PURE__*/ l.ref<SystemComponent>((() => systemComponent) as any),"migrations":/*#__PURE__*/ l.ref<MigrationInfo>((() => migrationInfo) as any),"indexer":/*#__PURE__*/ l.ref<IndexerStatus>((() => indexerStatus) as any),"pds":/*#__PURE__*/ l.ref<SystemComponent>((() => systemComponent) as any),"ozone":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.ref<SystemComponent>((() => systemComponent) as any)),"appview":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.ref<SystemComponent>((() => systemComponent) as any)),"ozoneDaemon":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.ref<SystemComponent>((() => systemComponent) as any)),"externalServices":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.array(/*#__PURE__*/ l.ref<ExternalService>((() => externalService) as any), {"maxLength":10}))}));
+
+export { systemStatus };
+
+type SavedView = { $type?: "com.selfcommand.admin.defs#savedView";"id":string;"name":string;"search"?:string;"status"?:AccountStatus;"sort"?:"did" | "handle" | "status" | "indexedAt" | l.UnknownString;"order"?:"asc" | "desc" | l.UnknownString };
+
+export type { SavedView };
+
+const savedView = /*#__PURE__*/ l.typedObject<SavedView>($nsid, "savedView", /*#__PURE__*/ l.object({"id":/*#__PURE__*/ l.string({"maxLength":64}),"name":/*#__PURE__*/ l.string({"maxLength":40}),"search":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":256})),"status":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.ref<AccountStatus>((() => accountStatus) as any)),"sort":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string<{"knownValues":["did","handle","status","indexedAt"]}>()),"order":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string<{"knownValues":["asc","desc"]}>())}));
+
+export { savedView };
+
+/** Saved filter preset for the moderation reports or events list, kept per administrator account. */
+type FilterMacro = { $type?: "com.selfcommand.admin.defs#filterMacro";"id":string;"name":string;"scope":"reports" | "events" | l.UnknownString;
+
+  /**
+   * When true the macro is applied automatically when the list page opens. At most one default macro per scope.
+   */
+  "isDefault"?:boolean;"filters"?:FilterMacroFilters };
+
+export type { FilterMacro };
+
+/** Saved filter preset for the moderation reports or events list, kept per administrator account. */
+const filterMacro = /*#__PURE__*/ l.typedObject<FilterMacro>($nsid, "filterMacro", /*#__PURE__*/ l.object({"id":/*#__PURE__*/ l.string({"maxLength":64}),"name":/*#__PURE__*/ l.string({"maxLength":40}),"scope":/*#__PURE__*/ l.string<{"knownValues":["reports","events"]}>(),"isDefault":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.boolean()),"filters":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.ref<FilterMacroFilters>((() => filterMacroFilters) as any))}));
+
+export { filterMacro };
+
+/** Filter values captured by a saved macro. Only fields relevant to the macro scope are applied. */
+type FilterMacroFilters = { $type?: "com.selfcommand.admin.defs#filterMacroFilters";"subject"?:string;"subjectType"?:"account" | "record" | "message" | "conversation" | l.UnknownString;"status"?:"open" | "closed" | "escalated" | "queued" | "assigned" | l.UnknownString;"queue"?:string;"actor"?:string;"keyword"?:string;"types"?:(string)[];"hasComment"?:boolean;"direction"?:"asc" | "desc" | l.UnknownString;"batchId"?:string };
+
+export type { FilterMacroFilters };
+
+/** Filter values captured by a saved macro. Only fields relevant to the macro scope are applied. */
+const filterMacroFilters = /*#__PURE__*/ l.typedObject<FilterMacroFilters>($nsid, "filterMacroFilters", /*#__PURE__*/ l.object({"subject":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":2048})),"subjectType":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string<{"knownValues":["account","record","message","conversation"]}>()),"status":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string<{"knownValues":["open","closed","escalated","queued","assigned"]}>()),"queue":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":256})),"actor":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":2048})),"keyword":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":256})),"types":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.array(/*#__PURE__*/ l.string({"maxLength":64}), {"maxLength":10})),"hasComment":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.boolean()),"direction":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string<{"knownValues":["asc","desc"]}>()),"batchId":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":256}))}));
+
+export { filterMacroFilters };
+
+type AccountOperation = { $type?: "com.selfcommand.admin.defs#accountOperation";"did":l.DidString;
+
+  /**
+   * Operational note kept in the admin console only. It never changes the account on the community.
+   */
+  "note"?:string;"tags":(string)[];
+
+  /**
+   * When true the directory indexer stops applying events for this account; the community account is unaffected.
+   */
+  "syncPaused":boolean;"syncPausedAt"?:l.DatetimeString;"syncPausedBy"?:l.DidString;"updatedAt"?:l.DatetimeString;"updatedBy"?:l.DidString };
+
+export type { AccountOperation };
+
+const accountOperation = /*#__PURE__*/ l.typedObject<AccountOperation>($nsid, "accountOperation", /*#__PURE__*/ l.object({"did":/*#__PURE__*/ l.string({"format":"did"}),"note":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":500})),"tags":/*#__PURE__*/ l.array(/*#__PURE__*/ l.string({"maxLength":24}), {"maxLength":10}),"syncPaused":/*#__PURE__*/ l.boolean(),"syncPausedAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"syncPausedBy":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"did"})),"updatedAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"updatedBy":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"did"}))}));
+
+export { accountOperation };
+
+type AccessRecord = { $type?: "com.selfcommand.admin.defs#accessRecord";"did":l.DidString;"ip":string;"userAgent"?:string;"firstSeenAt":l.DatetimeString;"lastSeenAt":l.DatetimeString;"requestCount":number };
+
+export type { AccessRecord };
+
+const accessRecord = /*#__PURE__*/ l.typedObject<AccessRecord>($nsid, "accessRecord", /*#__PURE__*/ l.object({"did":/*#__PURE__*/ l.string({"format":"did"}),"ip":/*#__PURE__*/ l.string({"maxLength":64}),"userAgent":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":256})),"firstSeenAt":/*#__PURE__*/ l.string({"format":"datetime"}),"lastSeenAt":/*#__PURE__*/ l.string({"format":"datetime"}),"requestCount":/*#__PURE__*/ l.integer({"minimum":1})}));
+
+export { accessRecord };
+
+type AccessBlock = { $type?: "com.selfcommand.admin.defs#accessBlock";"did":l.DidString;"blockedBy":l.DidString;"reason"?:string;"blockedAt":l.DatetimeString };
+
+export type { AccessBlock };
+
+const accessBlock = /*#__PURE__*/ l.typedObject<AccessBlock>($nsid, "accessBlock", /*#__PURE__*/ l.object({"did":/*#__PURE__*/ l.string({"format":"did"}),"blockedBy":/*#__PURE__*/ l.string({"format":"did"}),"reason":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":200})),"blockedAt":/*#__PURE__*/ l.string({"format":"datetime"})}));
+
+export { accessBlock };
+
+/** High-risk action that requires approval from a second administrator. Moderation, verification and account actions are executed against the upstream service on approval. */
+type ApprovalAction = "settings.resetAll" | "role.revoke" | "role.demote" | "role.import" | "moderation.takedown" | "moderation.batch" | "moderation.label" | "verification.grant" | "verification.revoke" | "account.admin.update" | "account.admin.delete" | "notifications.send" | "policy.write" | "announcement.publish" | "announcement.archive" | l.UnknownString;
+
+export type { ApprovalAction };
+
+/** High-risk action that requires approval from a second administrator. Moderation, verification and account actions are executed against the upstream service on approval. */
+const approvalAction = /*#__PURE__*/ l.string<{"knownValues":["settings.resetAll","role.revoke","role.demote","role.import","moderation.takedown","moderation.batch","moderation.label","verification.grant","verification.revoke","account.admin.update","account.admin.delete","notifications.send","policy.write","announcement.publish","announcement.archive"]}>();
+
+export { approvalAction };
+
+type ApprovalStatus = "pending" | "executed" | "rejected" | "cancelled" | "expired" | "failed" | l.UnknownString;
+
+export type { ApprovalStatus };
+
+const approvalStatus = /*#__PURE__*/ l.string<{"knownValues":["pending","executed","rejected","cancelled","expired","failed"]}>();
+
+export { approvalStatus };
+
+type Approval = { $type?: "com.selfcommand.admin.defs#approval";"id":string;"action":ApprovalAction;"targetType"?:string;"target"?:string;"summary"?:string;"status":ApprovalStatus;"requestedBy":l.DidString;"requestedAt":l.DatetimeString;"decidedBy"?:l.DidString;"decidedAt"?:l.DatetimeString;"expiresAt":l.DatetimeString;"error"?:string };
+
+export type { Approval };
+
+const approval = /*#__PURE__*/ l.typedObject<Approval>($nsid, "approval", /*#__PURE__*/ l.object({"id":/*#__PURE__*/ l.string({"maxLength":64}),"action":/*#__PURE__*/ l.ref<ApprovalAction>((() => approvalAction) as any),"targetType":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":64})),"target":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":512})),"summary":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":200})),"status":/*#__PURE__*/ l.ref<ApprovalStatus>((() => approvalStatus) as any),"requestedBy":/*#__PURE__*/ l.string({"format":"did"}),"requestedAt":/*#__PURE__*/ l.string({"format":"datetime"}),"decidedBy":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"did"})),"decidedAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"expiresAt":/*#__PURE__*/ l.string({"format":"datetime"}),"error":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":500}))}));
+
+export { approval };
+
+type MetricStatusCounts = { $type?: "com.selfcommand.admin.defs#metricStatusCounts";"active":number;"deactivated":number;"suspended":number;"takendown":number;"deleted":number;"unknown":number };
+
+export type { MetricStatusCounts };
+
+const metricStatusCounts = /*#__PURE__*/ l.typedObject<MetricStatusCounts>($nsid, "metricStatusCounts", /*#__PURE__*/ l.object({"active":/*#__PURE__*/ l.integer({"minimum":0}),"deactivated":/*#__PURE__*/ l.integer({"minimum":0}),"suspended":/*#__PURE__*/ l.integer({"minimum":0}),"takendown":/*#__PURE__*/ l.integer({"minimum":0}),"deleted":/*#__PURE__*/ l.integer({"minimum":0}),"unknown":/*#__PURE__*/ l.integer({"minimum":0})}));
+
+export { metricStatusCounts };
+
+type DailyMetric = { $type?: "com.selfcommand.admin.defs#dailyMetric";
+
+  /**
+   * Calendar day in the report timezone, formatted YYYY-MM-DD.
+   */
+  "day":string;"accountsTotal":number;"accountsNew":number;"accountsActive24h":number;"statusCounts":MetricStatusCounts;"auditTotal":number;"auditDenied":number };
+
+export type { DailyMetric };
+
+const dailyMetric = /*#__PURE__*/ l.typedObject<DailyMetric>($nsid, "dailyMetric", /*#__PURE__*/ l.object({"day":/*#__PURE__*/ l.string({"maxLength":10}),"accountsTotal":/*#__PURE__*/ l.integer({"minimum":0}),"accountsNew":/*#__PURE__*/ l.integer({"minimum":0}),"accountsActive24h":/*#__PURE__*/ l.integer({"minimum":0}),"statusCounts":/*#__PURE__*/ l.ref<MetricStatusCounts>((() => metricStatusCounts) as any),"auditTotal":/*#__PURE__*/ l.integer({"minimum":0}),"auditDenied":/*#__PURE__*/ l.integer({"minimum":0})}));
+
+export { dailyMetric };
+
+/** Kind of subject handled by moderation: an account, a record, a chat message or a conversation. */
+type ModerationSubjectType = "account" | "record" | "message" | "conversation" | l.UnknownString;
+
+export type { ModerationSubjectType };
+
+/** Kind of subject handled by moderation: an account, a record, a chat message or a conversation. */
+const moderationSubjectType = /*#__PURE__*/ l.string<{"knownValues":["account","record","message","conversation"]}>();
+
+export { moderationSubjectType };
+
+type ReportStatus = "open" | "closed" | "escalated" | "queued" | "assigned" | l.UnknownString;
+
+export type { ReportStatus };
+
+const reportStatus = /*#__PURE__*/ l.string<{"knownValues":["open","closed","escalated","queued","assigned"]}>();
+
+export { reportStatus };
+
+/** Action applied to a single report. */
+type ReportAction = "assign" | "unassign" | "close" | "escalate" | "reopen" | l.UnknownString;
+
+export type { ReportAction };
+
+/** Action applied to a single report. */
+const reportAction = /*#__PURE__*/ l.string<{"knownValues":["assign","unassign","close","escalate","reopen"]}>();
+
+export { reportAction };
+
+/** Moderation event emitted against one or more subjects. */
+type ModerationAction = "takedown" | "reverseTakedown" | "acknowledge" | "escalate" | "comment" | "label" | "mute" | "unmute" | l.UnknownString;
+
+export type { ModerationAction };
+
+/** Moderation event emitted against one or more subjects. */
+const moderationAction = /*#__PURE__*/ l.string<{"knownValues":["takedown","reverseTakedown","acknowledge","escalate","comment","label","mute","unmute"]}>();
+
+export { moderationAction };
+
+type ReportView = { $type?: "com.selfcommand.admin.defs#reportView";"id":number;"status":ReportStatus;
+
+  /**
+   * Account DID or record AT-URI that was reported.
+   */
+  "subject":string;"subjectType"?:ModerationSubjectType;"reportType":string;"reportedBy":l.DidString;"reporterHandle"?:string;"subjectHandle"?:string;"comment"?:string;"createdAt":l.DatetimeString;"updatedAt"?:l.DatetimeString;"queueId"?:number;"priorityScore"?:number;"actionNote"?:string;"assignedTo"?:l.DidString;"closedBy"?:l.DidString;"closedAt"?:l.DatetimeString;"eventId"?:number;"relatedReportCount"?:number };
+
+export type { ReportView };
+
+const reportView = /*#__PURE__*/ l.typedObject<ReportView>($nsid, "reportView", /*#__PURE__*/ l.object({"id":/*#__PURE__*/ l.integer({"minimum":1}),"status":/*#__PURE__*/ l.ref<ReportStatus>((() => reportStatus) as any),"subject":/*#__PURE__*/ l.string({"maxLength":2048}),"subjectType":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.ref<ModerationSubjectType>((() => moderationSubjectType) as any)),"reportType":/*#__PURE__*/ l.string({"maxLength":128}),"reportedBy":/*#__PURE__*/ l.string({"format":"did"}),"reporterHandle":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":256})),"subjectHandle":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":256})),"comment":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":2000})),"createdAt":/*#__PURE__*/ l.string({"format":"datetime"}),"updatedAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"queueId":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer()),"priorityScore":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0,"maximum":100})),"actionNote":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":1000})),"assignedTo":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"did"})),"closedBy":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"did"})),"closedAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"eventId":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":1})),"relatedReportCount":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0}))}));
+
+export { reportView };
+
+type EventView = { $type?: "com.selfcommand.admin.defs#eventView";"id":number;"eventType":string;"subject":string;"subjectType"?:ModerationSubjectType;"createdBy":l.DidString;"creatorHandle"?:string;"subjectHandle"?:string;"createdAt":l.DatetimeString;"comment"?:string;"reportId"?:number;"durationInHours"?:number;"labels"?:(string)[] };
+
+export type { EventView };
+
+const eventView = /*#__PURE__*/ l.typedObject<EventView>($nsid, "eventView", /*#__PURE__*/ l.object({"id":/*#__PURE__*/ l.integer({"minimum":1}),"eventType":/*#__PURE__*/ l.string({"maxLength":128}),"subject":/*#__PURE__*/ l.string({"maxLength":2048}),"subjectType":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.ref<ModerationSubjectType>((() => moderationSubjectType) as any)),"createdBy":/*#__PURE__*/ l.string({"format":"did"}),"creatorHandle":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":256})),"subjectHandle":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":256})),"createdAt":/*#__PURE__*/ l.string({"format":"datetime"}),"comment":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":2000})),"reportId":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":1})),"durationInHours":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0})),"labels":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.array(/*#__PURE__*/ l.string({"maxLength":64}), {"maxLength":10}))}));
+
+export { eventView };
+
+type QueueStats = { $type?: "com.selfcommand.admin.defs#queueStats";"pendingCount"?:number;"closedCount"?:number;"escalatedCount"?:number;"inboundCount"?:number;"actionedCount"?:number;"acknowledgedCount"?:number };
+
+export type { QueueStats };
+
+const queueStats = /*#__PURE__*/ l.typedObject<QueueStats>($nsid, "queueStats", /*#__PURE__*/ l.object({"pendingCount":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0})),"closedCount":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0})),"escalatedCount":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0})),"inboundCount":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0})),"actionedCount":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0})),"acknowledgedCount":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0}))}));
+
+export { queueStats };
+
+type QueueView = { $type?: "com.selfcommand.admin.defs#queueView";"id":number;"name":string;"description"?:string;"enabled":boolean;"subjectTypes"?:(ModerationSubjectType)[];"collection"?:l.NsidString;"reportTypes"?:(string)[];"createdBy"?:l.DidString;"createdAt":l.DatetimeString;"updatedAt":l.DatetimeString;"stats"?:QueueStats };
+
+export type { QueueView };
+
+const queueView = /*#__PURE__*/ l.typedObject<QueueView>($nsid, "queueView", /*#__PURE__*/ l.object({"id":/*#__PURE__*/ l.integer({"minimum":1}),"name":/*#__PURE__*/ l.string({"maxLength":100}),"description":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":500})),"enabled":/*#__PURE__*/ l.boolean(),"subjectTypes":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.array(/*#__PURE__*/ l.ref<ModerationSubjectType>((() => moderationSubjectType) as any), {"maxLength":4})),"collection":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"nsid"})),"reportTypes":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.array(/*#__PURE__*/ l.string({"maxLength":128}), {"maxLength":50})),"createdBy":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"did"})),"createdAt":/*#__PURE__*/ l.string({"format":"datetime"}),"updatedAt":/*#__PURE__*/ l.string({"format":"datetime"}),"stats":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.ref<QueueStats>((() => queueStats) as any))}));
+
+export { queueView };
+
+type ContentView = { $type?: "com.selfcommand.admin.defs#contentView";"uri":l.AtUriString;"cid"?:string;"author":l.DidString;"authorHandle"?:string;"text"?:string;"collection"?:l.NsidString;"indexedAt"?:l.DatetimeString;
+
+  /**
+   * True when the subject is taken down or restricted upstream.
+   */
+  "hidden":boolean;"reviewState"?:string;"labels"?:(string)[];"likeCount"?:number;"repostCount"?:number;"replyCount"?:number };
+
+export type { ContentView };
+
+const contentView = /*#__PURE__*/ l.typedObject<ContentView>($nsid, "contentView", /*#__PURE__*/ l.object({"uri":/*#__PURE__*/ l.string({"format":"at-uri"}),"cid":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":128})),"author":/*#__PURE__*/ l.string({"format":"did"}),"authorHandle":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":256})),"text":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":1000})),"collection":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"nsid"})),"indexedAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"hidden":/*#__PURE__*/ l.boolean(),"reviewState":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":64})),"labels":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.array(/*#__PURE__*/ l.string({"maxLength":64}), {"maxLength":20})),"likeCount":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0})),"repostCount":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0})),"replyCount":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0}))}));
+
+export { contentView };
+
+type ScheduledActionView = { $type?: "com.selfcommand.admin.defs#scheduledActionView";"id":number;"action":string;"subject":l.DidString;"status":"pending" | "executed" | "cancelled" | "failed" | l.UnknownString;"executeAt"?:l.DatetimeString;"executeAfter"?:l.DatetimeString;"executeUntil"?:l.DatetimeString;"comment"?:string;"createdBy":l.DidString;"createdAt":l.DatetimeString;"updatedAt"?:l.DatetimeString;"lastFailureReason"?:string };
+
+export type { ScheduledActionView };
+
+const scheduledActionView = /*#__PURE__*/ l.typedObject<ScheduledActionView>($nsid, "scheduledActionView", /*#__PURE__*/ l.object({"id":/*#__PURE__*/ l.integer({"minimum":1}),"action":/*#__PURE__*/ l.string({"maxLength":64}),"subject":/*#__PURE__*/ l.string({"format":"did"}),"status":/*#__PURE__*/ l.string<{"knownValues":["pending","executed","cancelled","failed"]}>(),"executeAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"executeAfter":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"executeUntil":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"comment":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":500})),"createdBy":/*#__PURE__*/ l.string({"format":"did"}),"createdAt":/*#__PURE__*/ l.string({"format":"datetime"}),"updatedAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"lastFailureReason":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":500}))}));
+
+export { scheduledActionView };
+
+type VerificationView = { $type?: "com.selfcommand.admin.defs#verificationView";"uri":l.AtUriString;"issuer":l.DidString;"subject":l.DidString;"handle"?:string;"displayName"?:string;"createdAt":l.DatetimeString;"isActive":boolean;"revokeReason"?:string };
+
+export type { VerificationView };
+
+const verificationView = /*#__PURE__*/ l.typedObject<VerificationView>($nsid, "verificationView", /*#__PURE__*/ l.object({"uri":/*#__PURE__*/ l.string({"format":"at-uri"}),"issuer":/*#__PURE__*/ l.string({"format":"did"}),"subject":/*#__PURE__*/ l.string({"format":"did"}),"handle":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":256})),"displayName":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":200})),"createdAt":/*#__PURE__*/ l.string({"format":"datetime"}),"isActive":/*#__PURE__*/ l.boolean(),"revokeReason":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":500}))}));
+
+export { verificationView };
+
+type TemplateView = { $type?: "com.selfcommand.admin.defs#templateView";"id":string;"name":string;"subject":string;"contentMarkdown":string;"lang"?:string;"disabled":boolean;"createdAt"?:l.DatetimeString;"updatedAt"?:l.DatetimeString };
+
+export type { TemplateView };
+
+const templateView = /*#__PURE__*/ l.typedObject<TemplateView>($nsid, "templateView", /*#__PURE__*/ l.object({"id":/*#__PURE__*/ l.string({"maxLength":128}),"name":/*#__PURE__*/ l.string({"maxLength":200}),"subject":/*#__PURE__*/ l.string({"maxLength":500}),"contentMarkdown":/*#__PURE__*/ l.string({"maxLength":20000}),"lang":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":16})),"disabled":/*#__PURE__*/ l.boolean(),"createdAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"updatedAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"}))}));
+
+export { templateView };
+
+type PolicyOptionView = { $type?: "com.selfcommand.admin.defs#policyOptionView";"key":l.NsidString;"scope":"instance" | "personal" | l.UnknownString;"value"?:l.LexMap;"description"?:string;"managerRole"?:string;"updatedAt"?:l.DatetimeString;"updatedBy"?:l.DidString };
+
+export type { PolicyOptionView };
+
+const policyOptionView = /*#__PURE__*/ l.typedObject<PolicyOptionView>($nsid, "policyOptionView", /*#__PURE__*/ l.object({"key":/*#__PURE__*/ l.string({"format":"nsid"}),"scope":/*#__PURE__*/ l.string<{"knownValues":["instance","personal"]}>(),"value":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.lexMap()),"description":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":2000})),"managerRole":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":128})),"updatedAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"updatedBy":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"did"}))}));
+
+export { policyOptionView };
+
+type PolicySetView = { $type?: "com.selfcommand.admin.defs#policySetView";"name":string;"description"?:string;"valuesCount"?:number;"createdAt"?:l.DatetimeString;"updatedAt"?:l.DatetimeString };
+
+export type { PolicySetView };
+
+const policySetView = /*#__PURE__*/ l.typedObject<PolicySetView>($nsid, "policySetView", /*#__PURE__*/ l.object({"name":/*#__PURE__*/ l.string({"maxLength":128}),"description":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":500})),"valuesCount":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0})),"createdAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"updatedAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"}))}));
+
+export { policySetView };
+
+type SafelinkRuleView = { $type?: "com.selfcommand.admin.defs#safelinkRuleView";"url":string;"pattern":string;"action":string;"reason":string;"source"?:string;"comment"?:string;"createdAt"?:l.DatetimeString;"updatedAt"?:l.DatetimeString };
+
+export type { SafelinkRuleView };
+
+const safelinkRuleView = /*#__PURE__*/ l.typedObject<SafelinkRuleView>($nsid, "safelinkRuleView", /*#__PURE__*/ l.object({"url":/*#__PURE__*/ l.string({"maxLength":2048}),"pattern":/*#__PURE__*/ l.string({"maxLength":32}),"action":/*#__PURE__*/ l.string({"maxLength":32}),"reason":/*#__PURE__*/ l.string({"maxLength":32}),"source":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":128})),"comment":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":500})),"createdAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"updatedAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"}))}));
+
+export { safelinkRuleView };
+
+type SafelinkEventView = { $type?: "com.selfcommand.admin.defs#safelinkEventView";"id"?:number;"url":string;"pattern":string;"action":string;"reason":string;"source"?:string;"comment"?:string;"createdBy"?:l.DidString;"createdAt":l.DatetimeString };
+
+export type { SafelinkEventView };
+
+const safelinkEventView = /*#__PURE__*/ l.typedObject<SafelinkEventView>($nsid, "safelinkEventView", /*#__PURE__*/ l.object({"id":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":1})),"url":/*#__PURE__*/ l.string({"maxLength":2048}),"pattern":/*#__PURE__*/ l.string({"maxLength":32}),"action":/*#__PURE__*/ l.string({"maxLength":32}),"reason":/*#__PURE__*/ l.string({"maxLength":32}),"source":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":128})),"comment":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":500})),"createdBy":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"did"})),"createdAt":/*#__PURE__*/ l.string({"format":"datetime"})}));
+
+export { safelinkEventView };
+
+type LabelerConfig = { $type?: "com.selfcommand.admin.defs#labelerConfig";"available":boolean;"did"?:l.DidString;"handle"?:string;"displayName"?:string;"description"?:string;"policies"?:l.LexMap;"labels"?:l.LexMap;"reason"?:string };
+
+export type { LabelerConfig };
+
+const labelerConfig = /*#__PURE__*/ l.typedObject<LabelerConfig>($nsid, "labelerConfig", /*#__PURE__*/ l.object({"available":/*#__PURE__*/ l.boolean(),"did":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"did"})),"handle":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":256})),"displayName":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":200})),"description":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":1000})),"policies":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.lexMap()),"labels":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.lexMap()),"reason":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":500}))}));
+
+export { labelerConfig };
+
+type InviteCodeView = { $type?: "com.selfcommand.admin.defs#inviteCodeView";"code":string;"available":number;"disabled":boolean;"createdBy"?:l.DidString;"createdAt"?:l.DatetimeString;"usesCount"?:number };
+
+export type { InviteCodeView };
+
+const inviteCodeView = /*#__PURE__*/ l.typedObject<InviteCodeView>($nsid, "inviteCodeView", /*#__PURE__*/ l.object({"code":/*#__PURE__*/ l.string({"maxLength":64}),"available":/*#__PURE__*/ l.integer({"minimum":0}),"disabled":/*#__PURE__*/ l.boolean(),"createdBy":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"did"})),"createdAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"usesCount":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0}))}));
+
+export { inviteCodeView };
+
+type AccountAdminInfo = { $type?: "com.selfcommand.admin.defs#accountAdminInfo";"did":l.DidString;"handle"?:string;"email"?:string;"emailConfirmed"?:boolean;"invitesDisabled"?:boolean;"invitedBy"?:InviteCodeView;"invites"?:(InviteCodeView)[];"deactivatedAt"?:l.DatetimeString;"indexedAt"?:l.DatetimeString;"takedown"?:boolean };
+
+export type { AccountAdminInfo };
+
+const accountAdminInfo = /*#__PURE__*/ l.typedObject<AccountAdminInfo>($nsid, "accountAdminInfo", /*#__PURE__*/ l.object({"did":/*#__PURE__*/ l.string({"format":"did"}),"handle":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":256})),"email":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":320})),"emailConfirmed":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.boolean()),"invitesDisabled":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.boolean()),"invitedBy":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.ref<InviteCodeView>((() => inviteCodeView) as any)),"invites":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.array(/*#__PURE__*/ l.ref<InviteCodeView>((() => inviteCodeView) as any), {"maxLength":100})),"deactivatedAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"indexedAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"takedown":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.boolean())}));
+
+export { accountAdminInfo };
+
+type AnalyticsSummary = { $type?: "com.selfcommand.admin.defs#analyticsSummary";"pendingCount":number;"closedCount":number;"escalatedCount":number;"inboundCount":number;"actionedCount":number;"acknowledgedCount":number;"closureTargetMetRate"?:number;"closureTargetOverdueCount"?:number };
+
+export type { AnalyticsSummary };
+
+const analyticsSummary = /*#__PURE__*/ l.typedObject<AnalyticsSummary>($nsid, "analyticsSummary", /*#__PURE__*/ l.object({"pendingCount":/*#__PURE__*/ l.integer({"minimum":0}),"closedCount":/*#__PURE__*/ l.integer({"minimum":0}),"escalatedCount":/*#__PURE__*/ l.integer({"minimum":0}),"inboundCount":/*#__PURE__*/ l.integer({"minimum":0}),"actionedCount":/*#__PURE__*/ l.integer({"minimum":0}),"acknowledgedCount":/*#__PURE__*/ l.integer({"minimum":0}),"closureTargetMetRate":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0,"maximum":100})),"closureTargetOverdueCount":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0}))}));
+
+export { analyticsSummary };
+
+type AnalyticsDay = { $type?: "com.selfcommand.admin.defs#analyticsDay";"day":string;"pendingCount"?:number;"closedCount"?:number;"escalatedCount"?:number;"inboundCount"?:number;"actionedCount"?:number;"acknowledgedCount"?:number };
+
+export type { AnalyticsDay };
+
+const analyticsDay = /*#__PURE__*/ l.typedObject<AnalyticsDay>($nsid, "analyticsDay", /*#__PURE__*/ l.object({"day":/*#__PURE__*/ l.string({"maxLength":10}),"pendingCount":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0})),"closedCount":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0})),"escalatedCount":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0})),"inboundCount":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0})),"actionedCount":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0})),"acknowledgedCount":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0}))}));
+
+export { analyticsDay };
+
+type AccountOverview = { $type?: "com.selfcommand.admin.defs#accountOverview";"did":l.DidString;"handle"?:string;"status"?:AccountStatus;"reviewState"?:string;"takendown"?:boolean;"muted"?:boolean;"lastReviewedAt"?:l.DatetimeString;"lastReportedAt"?:l.DatetimeString;"eventCount"?:number;"openReportCount"?:number;"labels"?:(string)[] };
+
+export type { AccountOverview };
+
+const accountOverview = /*#__PURE__*/ l.typedObject<AccountOverview>($nsid, "accountOverview", /*#__PURE__*/ l.object({"did":/*#__PURE__*/ l.string({"format":"did"}),"handle":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":256})),"status":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.ref<AccountStatus>((() => accountStatus) as any)),"reviewState":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":64})),"takendown":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.boolean()),"muted":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.boolean()),"lastReviewedAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"lastReportedAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"eventCount":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0})),"openReportCount":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0})),"labels":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.array(/*#__PURE__*/ l.string({"maxLength":64}), {"maxLength":20}))}));
+
+export { accountOverview };
+
+type ImageResult = { $type?: "com.selfcommand.admin.defs#imageResult";"imageUrl":string;"thumbnailUrl"?:string;"postUri"?:string;"author"?:string;"description"?:string;"score"?:number };
+
+export type { ImageResult };
+
+const imageResult = /*#__PURE__*/ l.typedObject<ImageResult>($nsid, "imageResult", /*#__PURE__*/ l.object({"imageUrl":/*#__PURE__*/ l.string({"maxLength":2048}),"thumbnailUrl":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":2048})),"postUri":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":2048})),"author":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":256})),"description":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":500})),"score":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0}))}));
+
+export { imageResult };
+
+type ExternalService = { $type?: "com.selfcommand.admin.defs#externalService";"key":"image-search" | "chat" | "email" | "labeler" | l.UnknownString;"name":string;"status":"ok" | "degraded" | "unavailable" | "disabled" | "unknown" | l.UnknownString;"detail"?:string;"checkedAt"?:l.DatetimeString };
+
+export type { ExternalService };
+
+const externalService = /*#__PURE__*/ l.typedObject<ExternalService>($nsid, "externalService", /*#__PURE__*/ l.object({"key":/*#__PURE__*/ l.string<{"knownValues":["image-search","chat","email","labeler"]}>(),"name":/*#__PURE__*/ l.string({"maxLength":40}),"status":/*#__PURE__*/ l.string<{"knownValues":["ok","degraded","unavailable","disabled","unknown"]}>(),"detail":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":200})),"checkedAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"}))}));
+
+export { externalService };
+
+/** Review state of a moderated subject: needs review, closed, escalated to a higher queue, or no review yet. */
+type ReviewState = "open" | "closed" | "escalated" | "none" | l.UnknownString;
+
+export type { ReviewState };
+
+/** Review state of a moderated subject: needs review, closed, escalated to a higher queue, or no review yet. */
+const reviewState = /*#__PURE__*/ l.string<{"knownValues":["open","closed","escalated","none"]}>();
+
+export { reviewState };
+
+type StatusView = { $type?: "com.selfcommand.admin.defs#statusView";"id":number;"subject":string;"subjectType"?:ModerationSubjectType;"subjectHandle"?:string;"reviewState":ReviewState;"takendown"?:boolean;"muted"?:boolean;"comment"?:string;"priorityScore"?:number;"lastReportedAt"?:l.DatetimeString;"lastReviewedAt"?:l.DatetimeString;"lastReviewedBy"?:l.DidString;"tags"?:(string)[];"createdAt":l.DatetimeString;"updatedAt":l.DatetimeString };
+
+export type { StatusView };
+
+const statusView = /*#__PURE__*/ l.typedObject<StatusView>($nsid, "statusView", /*#__PURE__*/ l.object({"id":/*#__PURE__*/ l.integer({"minimum":0}),"subject":/*#__PURE__*/ l.string({"maxLength":2048}),"subjectType":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.ref<ModerationSubjectType>((() => moderationSubjectType) as any)),"subjectHandle":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":256})),"reviewState":/*#__PURE__*/ l.ref<ReviewState>((() => reviewState) as any),"takendown":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.boolean()),"muted":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.boolean()),"comment":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":2000})),"priorityScore":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.integer({"minimum":0,"maximum":100})),"lastReportedAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"lastReviewedAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"lastReviewedBy":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"did"})),"tags":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.array(/*#__PURE__*/ l.string({"maxLength":64}), {"maxLength":20})),"createdAt":/*#__PURE__*/ l.string({"format":"datetime"}),"updatedAt":/*#__PURE__*/ l.string({"format":"datetime"})}));
+
+export { statusView };
+
+type EventBatchSummary = { $type?: "com.selfcommand.admin.defs#eventBatchSummary";"batchId":string;"totalEvents":number;"scannedEvents":number;"truncated":boolean;"createdAfter"?:l.DatetimeString;"createdBefore"?:l.DatetimeString;"typeCounts":(EventTypeCount)[];"createdBy"?:(l.DidString)[] };
+
+export type { EventBatchSummary };
+
+const eventBatchSummary = /*#__PURE__*/ l.typedObject<EventBatchSummary>($nsid, "eventBatchSummary", /*#__PURE__*/ l.object({"batchId":/*#__PURE__*/ l.string({"maxLength":256}),"totalEvents":/*#__PURE__*/ l.integer({"minimum":0}),"scannedEvents":/*#__PURE__*/ l.integer({"minimum":0}),"truncated":/*#__PURE__*/ l.boolean(),"createdAfter":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"createdBefore":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"typeCounts":/*#__PURE__*/ l.array(/*#__PURE__*/ l.ref<EventTypeCount>((() => eventTypeCount) as any), {"maxLength":20}),"createdBy":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.array(/*#__PURE__*/ l.string({"format":"did"}), {"maxLength":20}))}));
+
+export { eventBatchSummary };
+
+type EventTypeCount = { $type?: "com.selfcommand.admin.defs#eventTypeCount";"eventType":string;"count":number };
+
+export type { EventTypeCount };
+
+const eventTypeCount = /*#__PURE__*/ l.typedObject<EventTypeCount>($nsid, "eventTypeCount", /*#__PURE__*/ l.object({"eventType":/*#__PURE__*/ l.string({"maxLength":128}),"count":/*#__PURE__*/ l.integer({"minimum":0})}));
+
+export { eventTypeCount };
+
+/** Visual severity of an announcement: informational, warning or critical. */
+type AnnouncementLevel = "info" | "warning" | "critical" | l.UnknownString;
+
+export type { AnnouncementLevel };
+
+/** Visual severity of an announcement: informational, warning or critical. */
+const announcementLevel = /*#__PURE__*/ l.string<{"knownValues":["info","warning","critical"]}>();
+
+export { announcementLevel };
+
+/** Where the announcement is shown: the admin console or the public application. */
+type AnnouncementPlacement = "admin" | "app" | l.UnknownString;
+
+export type { AnnouncementPlacement };
+
+/** Where the announcement is shown: the admin console or the public application. */
+const announcementPlacement = /*#__PURE__*/ l.string<{"knownValues":["admin","app"]}>();
+
+export { announcementPlacement };
+
+type AnnouncementStatus = "draft" | "published" | "archived" | l.UnknownString;
+
+export type { AnnouncementStatus };
+
+const announcementStatus = /*#__PURE__*/ l.string<{"knownValues":["draft","published","archived"]}>();
+
+export { announcementStatus };
+
+type AnnouncementView = { $type?: "com.selfcommand.admin.defs#announcementView";"id":number;"title":string;"body":string;"level":AnnouncementLevel;"placement":AnnouncementPlacement;"status":AnnouncementStatus;"startsAt"?:l.DatetimeString;"endsAt"?:l.DatetimeString;"createdBy"?:l.DidString;"publishedBy"?:l.DidString;"createdAt":l.DatetimeString;"updatedAt":l.DatetimeString };
+
+export type { AnnouncementView };
+
+const announcementView = /*#__PURE__*/ l.typedObject<AnnouncementView>($nsid, "announcementView", /*#__PURE__*/ l.object({"id":/*#__PURE__*/ l.integer({"minimum":1}),"title":/*#__PURE__*/ l.string({"maxLength":120}),"body":/*#__PURE__*/ l.string({"maxLength":5000}),"level":/*#__PURE__*/ l.ref<AnnouncementLevel>((() => announcementLevel) as any),"placement":/*#__PURE__*/ l.ref<AnnouncementPlacement>((() => announcementPlacement) as any),"status":/*#__PURE__*/ l.ref<AnnouncementStatus>((() => announcementStatus) as any),"startsAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"endsAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"createdBy":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"did"})),"publishedBy":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"did"})),"createdAt":/*#__PURE__*/ l.string({"format":"datetime"}),"updatedAt":/*#__PURE__*/ l.string({"format":"datetime"})}));
+
+export { announcementView };
+
+/** Whitelisted public fields of a published announcement; no internal identifiers or operator identities. */
+type PublicAnnouncementView = { $type?: "com.selfcommand.admin.defs#publicAnnouncementView";"title":string;"body":string;"level":AnnouncementLevel;"placement":AnnouncementPlacement;"startsAt"?:l.DatetimeString;"endsAt"?:l.DatetimeString };
+
+export type { PublicAnnouncementView };
+
+/** Whitelisted public fields of a published announcement; no internal identifiers or operator identities. */
+const publicAnnouncementView = /*#__PURE__*/ l.typedObject<PublicAnnouncementView>($nsid, "publicAnnouncementView", /*#__PURE__*/ l.object({"title":/*#__PURE__*/ l.string({"maxLength":120}),"body":/*#__PURE__*/ l.string({"maxLength":5000}),"level":/*#__PURE__*/ l.ref<AnnouncementLevel>((() => announcementLevel) as any),"placement":/*#__PURE__*/ l.ref<AnnouncementPlacement>((() => announcementPlacement) as any),"startsAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"})),"endsAt":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"format":"datetime"}))}));
+
+export { publicAnnouncementView };

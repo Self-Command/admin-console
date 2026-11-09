@@ -1,0 +1,62 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.approval.create",
+  "description": "Create an approval request for a high-risk action. Requires a service JWT (com.atproto.server.getServiceAuth) and the permission of the target action. Another administrator must approve it; the requester cannot approve their own request.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["action", "payload"],
+          "properties": {
+            "action": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#approvalAction"
+            },
+            "targetType": {
+              "type": "string",
+              "maxLength": 64
+            },
+            "target": {
+              "type": "string",
+              "maxLength": 512
+            },
+            "summary": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "payload": {
+              "type": "unknown",
+              "description": "Normalized arguments of the target action; the same payload must be approved and executed."
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["approval"],
+          "properties": {
+            "approval": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#approval"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks the permission of the target action."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The action or payload is invalid."
+        }
+      ]
+    }
+  }
+}

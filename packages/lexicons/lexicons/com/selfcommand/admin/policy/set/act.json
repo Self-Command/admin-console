@@ -1,0 +1,85 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.policy.set.act",
+  "description": "Create, update or delete an object set and manage its members. Every change requires an approved request. Requires a service JWT obtained from the caller PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "operation",
+            "input"
+          ],
+          "properties": {
+            "operation": {
+              "type": "string",
+              "knownValues": [
+                "set.upsert",
+                "set.addValues",
+                "set.deleteValues",
+                "set.delete"
+              ]
+            },
+            "input": {
+              "type": "unknown",
+              "description": "Operation input. set.upsert takes name and description; member operations take name and values; set.delete takes name."
+            },
+            "approvalId": {
+              "type": "string",
+              "maxLength": 64
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "set": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#policySetView"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks the permission for this method."
+        },
+        {
+          "name": "NotConfigured",
+          "description": "The upstream service credential is not configured."
+        },
+        {
+          "name": "UpstreamAuthFailed",
+          "description": "The upstream service rejected the administrator credential."
+        },
+        {
+          "name": "UpstreamUnavailable",
+          "description": "The upstream service is unreachable, timed out or returned an unexpected payload."
+        },
+        {
+          "name": "RateLimited",
+          "description": "The upstream service rate limited the request."
+        },
+        {
+          "name": "ApprovalRequired",
+          "description": "Set changes require an approved request."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The set input is invalid."
+        },
+        {
+          "name": "NotFound",
+          "description": "The set does not exist."
+        }
+      ]
+    }
+  }
+}

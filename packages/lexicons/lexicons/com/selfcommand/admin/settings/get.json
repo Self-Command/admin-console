@@ -1,0 +1,40 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.settings.get",
+  "description": "Read every runtime setting partition with its version metadata. Requires a service JWT (com.atproto.server.getServiceAuth) and the settings read permission.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["settings", "defaults", "meta"],
+          "properties": {
+            "settings": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#settingsSections"
+            },
+            "defaults": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#settingsSections"
+            },
+            "meta": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#settingMeta"
+              }
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks settings.read."
+        }
+      ]
+    }
+  }
+}

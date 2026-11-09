@@ -1,0 +1,97 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.account.graph",
+  "description": "Browse the public social graph of an account through the AppView. Requires directory.read. Read-only; no follow, block or list mutation is exposed. Requires a service JWT obtained from the caller PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "parameters": {
+        "type": "params",
+        "required": [
+          "did",
+          "kind"
+        ],
+        "properties": {
+          "did": {
+            "type": "string",
+            "format": "did"
+          },
+          "kind": {
+            "type": "string",
+            "knownValues": [
+              "follows",
+              "followers",
+              "blocks",
+              "lists"
+            ]
+          },
+          "cursor": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 50
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "properties": {
+            "accounts": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.account.defs#accountSummary"
+              }
+            },
+            "lists": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.account.defs#listSummary"
+              }
+            },
+            "cursor": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks the permission for this method."
+        },
+        {
+          "name": "NotConfigured",
+          "description": "The AppView client is not configured."
+        },
+        {
+          "name": "NotFound",
+          "description": "The account is not known to the AppView."
+        },
+        {
+          "name": "UpstreamAuthFailed",
+          "description": "The AppView rejected the request."
+        },
+        {
+          "name": "UpstreamUnavailable",
+          "description": "The AppView is unreachable or timed out."
+        },
+        {
+          "name": "RateLimited",
+          "description": "The AppView rate limited the request."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The requested graph kind is not supported."
+        }
+      ]
+    }
+  }
+}

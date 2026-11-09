@@ -1,0 +1,85 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.signature.searchAccounts",
+  "description": "Search Ozone for accounts matching one or more threat signature values. Requires moderation.read. Upstream results do not include a total count, indexer status or per-account match status. Requires a service JWT obtained from the caller PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "parameters": {
+        "type": "params",
+        "required": [
+          "values"
+        ],
+        "properties": {
+          "values": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 10,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            }
+          },
+          "cursor": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 50
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "accounts"
+          ],
+          "properties": {
+            "accounts": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.signature.defs#accountView"
+              }
+            },
+            "cursor": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks the permission for this method."
+        },
+        {
+          "name": "NotConfigured",
+          "description": "The Ozone client credential is not configured."
+        },
+        {
+          "name": "UpstreamAuthFailed",
+          "description": "Ozone rejected the administrator credential."
+        },
+        {
+          "name": "UpstreamUnavailable",
+          "description": "Ozone is unreachable or timed out."
+        },
+        {
+          "name": "RateLimited",
+          "description": "Ozone rate limited the request."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "Ozone rejected the signature values."
+        }
+      ]
+    }
+  }
+}

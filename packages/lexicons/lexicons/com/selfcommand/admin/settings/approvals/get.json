@@ -1,0 +1,60 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.settings.approvals.get",
+  "description": "Read the actions that require a second administrator, including the built-in high-risk actions and the additional actions configured at runtime. Requires a service JWT obtained from the caller PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "builtInActions",
+            "additionalActions",
+            "availableActions",
+            "version"
+          ],
+          "properties": {
+            "builtInActions": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#approvalAction"
+              }
+            },
+            "additionalActions": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#approvalAction"
+              }
+            },
+            "availableActions": {
+              "description": "Actions the service supports for approval; values outside this list are rejected on update.",
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#approvalAction"
+              }
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "datetime"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks settings.read."
+        }
+      ]
+    }
+  }
+}

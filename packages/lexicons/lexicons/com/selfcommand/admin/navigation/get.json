@@ -1,0 +1,34 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.navigation.get",
+  "description": "Read the runtime navigation layout and UI feature entries for the calling account. Requires a service JWT (com.atproto.server.getServiceAuth); no workspace role is required. Navigation visibility never replaces server-side permissions.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["groups", "features", "version"],
+          "properties": {
+            "groups": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#navGroup"
+              }
+            },
+            "features": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#featureSettings"
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    }
+  }
+}

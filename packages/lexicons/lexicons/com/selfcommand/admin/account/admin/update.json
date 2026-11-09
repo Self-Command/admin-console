@@ -1,0 +1,80 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.account.admin.update",
+  "description": "Change the email address, handle or password of an account on the upstream PDS. Requires a service JWT (com.atproto.server.getServiceAuth) and account.admin. The change requires approval from a second administrator; with a single administrator in the workspace it executes directly. Passwords are sealed before an approval is stored and are never written to the audit trail.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "did"
+          ],
+          "properties": {
+            "did": {
+              "type": "string",
+              "format": "did"
+            },
+            "email": {
+              "type": "string",
+              "maxLength": 320
+            },
+            "handle": {
+              "type": "string",
+              "maxLength": 253
+            },
+            "password": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 256,
+              "description": "New password. It is sealed with a key derived from the PDS administrator credential before an approval request is stored."
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "properties": {}
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks account.admin."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The DID, email, handle or password are invalid, or no change was supplied."
+        },
+        {
+          "name": "ApprovalRequired",
+          "description": "The action requires an approval request from another administrator."
+        },
+        {
+          "name": "NotFound",
+          "description": "The account does not exist on the upstream PDS."
+        },
+        {
+          "name": "NotConfigured",
+          "description": "The PDS administrator credential is not configured."
+        },
+        {
+          "name": "UpstreamAuthFailed",
+          "description": "The PDS rejected the administrator credential."
+        },
+        {
+          "name": "UpstreamUnavailable",
+          "description": "The PDS is unreachable or timed out."
+        },
+        {
+          "name": "RateLimited",
+          "description": "The PDS rate limited the request."
+        }
+      ]
+    }
+  }
+}

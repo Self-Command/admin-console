@@ -1,0 +1,42 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.account.export",
+  "description": "Export the operational record of one account as a JSON document, including role binding and recent related audit events. Requires a service JWT (com.atproto.server.getServiceAuth) and directory.read. The export is audited with counts only.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "parameters": {
+        "type": "params",
+        "required": ["did"],
+        "properties": {
+          "did": {
+            "type": "string",
+            "format": "did"
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["document"],
+          "properties": {
+            "document": {
+              "type": "unknown"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks directory.read."
+        },
+        {
+          "name": "AccountNotFound",
+          "description": "The DID is not present in the indexed directory."
+        }
+      ]
+    }
+  }
+}

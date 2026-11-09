@@ -1,0 +1,62 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.account.profile.update",
+  "description": "Update the operational record of an account: note, tags and directory sync pause. Requires a service JWT (com.atproto.server.getServiceAuth) and account.write. Changes are audited and never change the account on the community.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["did"],
+          "properties": {
+            "did": {
+              "type": "string",
+              "format": "did"
+            },
+            "note": {
+              "type": "string",
+              "maxLength": 500,
+              "description": "An empty string clears the note."
+            },
+            "tags": {
+              "type": "array",
+              "maxLength": 10,
+              "items": {
+                "type": "string",
+                "maxLength": 24
+              }
+            },
+            "syncPaused": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["operation"],
+          "properties": {
+            "operation": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#accountOperation"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks account.write."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The note, tags or DID are invalid."
+        }
+      ]
+    }
+  }
+}

@@ -4,16 +4,29 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
 import { XIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { CommandPalette } from '@/components/layout/command-palette'
 import { Header } from '@/components/layout/header'
 import { Sidebar } from '@/components/layout/sidebar'
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [paletteOpen, setPaletteOpen] = useState(false)
   const pathname = usePathname()
 
   useEffect(() => {
     setMobileOpen(false)
   }, [pathname])
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLocaleLowerCase() === 'k') {
+        event.preventDefault()
+        setPaletteOpen((open) => !open)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   useEffect(() => {
     if (!mobileOpen) return
@@ -63,11 +76,16 @@ export function AppShell({ children }: { children: ReactNode }) {
       ) : null}
 
       <div className="lg:pl-64">
-        <Header onOpenMobileNav={() => setMobileOpen(true)} />
+        <Header
+          onOpenMobileNav={() => setMobileOpen(true)}
+          onOpenPalette={() => setPaletteOpen(true)}
+        />
         <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           {children}
         </main>
       </div>
+
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
     </div>
   )
 }

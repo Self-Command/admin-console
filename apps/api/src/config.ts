@@ -1,3 +1,5 @@
+import { isIP } from 'node:net'
+
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
 export type DidConfig = {
@@ -30,11 +32,32 @@ export type Config = {
   pdsUrl: string
   pdsTimeoutMs: number
   pdsMaxBytes: number
+  pdsAdminPassword?: string
+  ozoneUrl: string
+  ozoneAdminPassword?: string
+  ozoneDid?: string
+  ozoneModeratorHandle?: string
+  ozoneModeratorPassword?: string
+  ozoneTimeoutMs: number
+  ozoneMaxBytes: number
+  appviewUrl: string
+  appviewTimeoutMs: number
+  appviewMaxBytes: number
+  imageSearchUrl?: string
+  imageSearchToken?: string
+  chatModerationEnabled: boolean
   plcUrl: string
   did: DidConfig
   bootstrapAdminDid?: string
   readyDbTimeoutMs: number
   corsOrigins: string[]
+  version: string
+  commit?: string
+  metricsToken?: string
+  trustProxy: boolean
+  allowedIps: string[]
+  approvalTtlHours: number
+  reportTimezone: string
   indexer: IndexerConfig
 }
 
@@ -92,6 +115,42 @@ function readList(env: Env, name: string, fallback: string[]): string[] {
     .filter(Boolean)
 }
 
+function readIpList(env: Env, name: string): string[] {
+  const raw = env[name]?.trim()
+  if (!raw) return []
+  const entries = raw
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+  if (entries.length > 100) {
+    throw new ConfigError(`${name} must list at most 100 entries`)
+  }
+  for (const entry of entries) {
+    const [address, prefix, extra] = entry.split('/')
+    if (extra !== undefined || !address || isIP(address) === 0) {
+      throw new ConfigError(`${name} contains an invalid address: ${entry}`)
+    }
+    if (prefix !== undefined) {
+      const bits = Number(prefix)
+      const max = isIP(address) === 4 ? 32 : 128
+      if (!Number.isInteger(bits) || bits < 0 || bits > max) {
+        throw new ConfigError(`${name} contains an invalid prefix: ${entry}`)
+      }
+    }
+  }
+  return entries
+}
+
+function readTimezone(env: Env, name: string, fallback: string): string {
+  const value = readString(env, name, fallback)
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone: value })
+  } catch {
+    throw new ConfigError(`${name} must be a valid IANA time zone`)
+  }
+  return value
+}
+
 function readUrl(env: Env, name: string, fallback: string): string {
   const raw = readString(env, name, fallback)
   let url: URL
@@ -104,6 +163,21 @@ function readUrl(env: Env, name: string, fallback: string): string {
     throw new ConfigError(`${name} must use http or https`)
   }
   return url.origin
+}
+
+function readOptionalUrl(env: Env, name: string): string | undefined {
+  const raw = env[name]?.trim()
+  if (!raw) return undefined
+  let url: URL
+  try {
+    url = new URL(raw)
+  } catch {
+    throw new ConfigError(`${name} must be an absolute URL`)
+  }
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+    throw new ConfigError(`${name} must use http or https`)
+  }
+  return url.href
 }
 
 function readServiceDid(env: Env): string {
@@ -132,6 +206,32 @@ export function loadConfig(env: Env = process.env): Config {
     throw new ConfigError('ADMIN_API_LOG_LEVEL must be debug, info, warn or error')
   }
 
+  const ozoneDid = readOptionalString(env, 'ADMIN_API_OZONE_DID')
+  const ozoneModeratorHandle = readOptionalString(
+    env,
+    'ADMIN_API_OZONE_MODERATOR_HANDLE',
+  )
+  const ozoneModeratorPassword = readOptionalString(
+    env,
+    'ADMIN_API_OZONE_MODERATOR_PASSWORD',
+  )
+  if (ozoneDid && !/^did:[a-z0-9]+:[^\s/]+$/i.test(ozoneDid)) {
+    throw new ConfigError('ADMIN_API_OZONE_DID must be a DID (did:method:id)')
+  }
+  const moderatorValues = [
+    ozoneDid,
+    ozoneModeratorHandle,
+    ozoneModeratorPassword,
+  ]
+  if (
+    moderatorValues.some((value) => value !== undefined) &&
+    !moderatorValues.every((value) => value !== undefined)
+  ) {
+    throw new ConfigError(
+      'ADMIN_API_OZONE_DID, ADMIN_API_OZONE_MODERATOR_HANDLE and ADMIN_API_OZONE_MODERATOR_PASSWORD must be set together',
+    )
+  }
+
   return {
     host: readString(env, 'ADMIN_API_HOST', '0.0.0.0'),
     port: readInt(env, 'ADMIN_API_PORT', 2587, 1, 65535),
@@ -147,6 +247,32 @@ export function loadConfig(env: Env = process.env): Config {
       1024,
       64 * 1024 * 1024,
     ),
+    pdsAdminPassword: readOptionalString(env, 'ADMIN_API_PDS_ADMIN_PASSWORD'),
+    ozoneUrl: readUrl(env, 'ADMIN_API_OZONE_URL', 'http://localhost:2586'),
+    ozoneAdminPassword: readOptionalString(env, 'ADMIN_API_OZONE_ADMIN_PASSWORD'),
+    ozoneDid,
+    ozoneModeratorHandle,
+    ozoneModeratorPassword,
+    ozoneTimeoutMs: readInt(env, 'ADMIN_API_OZONE_TIMEOUT_MS', 10000, 500, 60000),
+    ozoneMaxBytes: readInt(
+      env,
+      'ADMIN_API_OZONE_MAX_BYTES',
+      8 * 1024 * 1024,
+      64 * 1024,
+      32 * 1024 * 1024,
+    ),
+    appviewUrl: readUrl(env, 'ADMIN_API_APPVIEW_URL', 'http://localhost:2584'),
+    appviewTimeoutMs: readInt(env, 'ADMIN_API_APPVIEW_TIMEOUT_MS', 8000, 500, 30000),
+    appviewMaxBytes: readInt(
+      env,
+      'ADMIN_API_APPVIEW_MAX_BYTES',
+      8 * 1024 * 1024,
+      64 * 1024,
+      32 * 1024 * 1024,
+    ),
+    imageSearchUrl: readOptionalUrl(env, 'ADMIN_API_IMAGE_SEARCH_URL'),
+    imageSearchToken: readOptionalString(env, 'ADMIN_API_IMAGE_SEARCH_TOKEN'),
+    chatModerationEnabled: readBool(env, 'ADMIN_API_CHAT_MODERATION_ENABLED', false),
     plcUrl: readUrl(env, 'ADMIN_API_PLC_URL', 'http://localhost:2582'),
     did: {
       allowedMethods: didMethods,
@@ -169,6 +295,13 @@ export function loadConfig(env: Env = process.env): Config {
     bootstrapAdminDid: readOptionalString(env, 'ADMIN_API_BOOTSTRAP_ADMIN_DID'),
     readyDbTimeoutMs: readInt(env, 'ADMIN_API_READY_DB_TIMEOUT_MS', 2000, 100, 30000),
     corsOrigins: readList(env, 'ADMIN_API_CORS_ORIGINS', []),
+    version: readString(env, 'ADMIN_API_VERSION', '0.1.0'),
+    commit: readOptionalString(env, 'ADMIN_API_COMMIT'),
+    metricsToken: readOptionalString(env, 'ADMIN_API_METRICS_TOKEN'),
+    trustProxy: readBool(env, 'ADMIN_API_TRUST_PROXY', false),
+    allowedIps: readIpList(env, 'ADMIN_API_ALLOWED_IPS'),
+    approvalTtlHours: readInt(env, 'ADMIN_API_APPROVAL_TTL_HOURS', 24, 1, 168),
+    reportTimezone: readTimezone(env, 'ADMIN_API_REPORT_TIMEZONE', 'Asia/Shanghai'),
     indexer: {
       enabled: readBool(env, 'ADMIN_API_INDEXER_ENABLED', true),
       backfillPageSize: readInt(env, 'ADMIN_API_INDEXER_BACKFILL_PAGE_SIZE', 1000, 1, 1000),

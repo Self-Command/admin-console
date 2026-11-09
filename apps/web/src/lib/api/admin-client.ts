@@ -80,10 +80,14 @@ async function serviceToken(session: PdsSession, lxm: string): Promise<string> {
 async function send(
   session: PdsSession,
   nsid: string,
-  options: { params?: Record<string, string>; body?: unknown },
+  options: { params?: Record<string, string | string[]>; body?: unknown },
 ): Promise<Response> {
   const token = await serviceToken(session, nsid)
-  const query = options.params ? `?${new URLSearchParams(options.params).toString()}` : ''
+  const search = new URLSearchParams()
+  for (const [key, value] of Object.entries(options.params ?? {})) {
+    for (const item of Array.isArray(value) ? value : [value]) search.append(key, item)
+  }
+  const query = search.size > 0 ? `?${search.toString()}` : ''
   try {
     return await fetch(`${adminApiConfig.url}/xrpc/${nsid}${query}`, {
       method: options.body === undefined ? 'GET' : 'POST',
@@ -107,7 +111,7 @@ async function send(
 export async function callAdmin<T>(
   session: PdsSession,
   nsid: string,
-  options: { params?: Record<string, string>; body?: unknown } = {},
+  options: { params?: Record<string, string | string[]>; body?: unknown } = {},
   onSession?: (session: PdsSession) => void,
 ): Promise<{ data: T; session: PdsSession }> {
   let current = session

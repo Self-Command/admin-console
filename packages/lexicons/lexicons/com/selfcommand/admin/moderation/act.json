@@ -1,0 +1,158 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.moderation.act",
+  "description": "Emit a moderation event against one or more accounts or records. Takedowns and batch actions require an approved request. Requires a service JWT obtained from the caller PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "subjects",
+            "action"
+          ],
+          "properties": {
+            "subjects": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 2048
+              },
+              "maxLength": 100,
+              "minLength": 1
+            },
+            "action": {
+              "type": "ref",
+              "ref": "com.selfcommand.admin.defs#moderationAction"
+            },
+            "comment": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 200,
+              "description": "Policy or rule that justified the action."
+            },
+            "labels": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 64
+              },
+              "maxLength": 10
+            },
+            "durationInHours": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 87600
+            },
+            "reportId": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "acknowledgeAccountSubjects": {
+              "type": "boolean"
+            },
+            "approvalId": {
+              "type": "string",
+              "maxLength": 64
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "events",
+            "failed"
+          ],
+          "properties": {
+            "events": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "#emittedEvent"
+              }
+            },
+            "failed": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "#failedSubject"
+              }
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks the permission for this method."
+        },
+        {
+          "name": "NotConfigured",
+          "description": "The upstream service credential is not configured."
+        },
+        {
+          "name": "UpstreamAuthFailed",
+          "description": "The upstream service rejected the administrator credential."
+        },
+        {
+          "name": "UpstreamUnavailable",
+          "description": "The upstream service is unreachable or timed out."
+        },
+        {
+          "name": "RateLimited",
+          "description": "The upstream service rate limited the request."
+        },
+        {
+          "name": "ApprovalRequired",
+          "description": "The action requires an approved request."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The subjects or action parameters are invalid."
+        }
+      ]
+    },
+    "emittedEvent": {
+      "type": "object",
+      "required": [
+        "subject",
+        "eventId"
+      ],
+      "properties": {
+        "subject": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "eventId": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "failedSubject": {
+      "type": "object",
+      "required": [
+        "subject",
+        "message"
+      ],
+      "properties": {
+        "subject": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    }
+  }
+}

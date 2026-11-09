@@ -1,0 +1,118 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.notifications.send",
+  "description": "Send an email notification to one or more accounts. Sending to two or more accounts requires an approved request. Requires a service JWT obtained from the caller PDS (com.atproto.server.getServiceAuth) with aud set to the admin service DID and lxm set to the invoked method.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "recipients",
+            "subject",
+            "contentMarkdown"
+          ],
+          "properties": {
+            "recipients": {
+              "type": "array",
+              "minLength": 1,
+              "maxLength": 100,
+              "items": {
+                "type": "string",
+                "format": "did"
+              }
+            },
+            "subject": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "contentMarkdown": {
+              "type": "string",
+              "maxLength": 20000
+            },
+            "templateId": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "approvalId": {
+              "type": "string",
+              "maxLength": 64
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": [
+            "sent",
+            "failed"
+          ],
+          "properties": {
+            "sent": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "failed": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "#failedRecipient"
+              }
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks the permission for this method."
+        },
+        {
+          "name": "NotConfigured",
+          "description": "The account service email credential is not configured."
+        },
+        {
+          "name": "UpstreamAuthFailed",
+          "description": "The account service rejected the administrator credential."
+        },
+        {
+          "name": "UpstreamUnavailable",
+          "description": "The account service is unreachable or timed out."
+        },
+        {
+          "name": "RateLimited",
+          "description": "The account service rate limited the request."
+        },
+        {
+          "name": "ApprovalRequired",
+          "description": "Sending to multiple accounts requires an approved request."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The notification input is invalid."
+        }
+      ]
+    },
+    "failedRecipient": {
+      "type": "object",
+      "required": [
+        "recipient",
+        "message"
+      ],
+      "properties": {
+        "recipient": {
+          "type": "string",
+          "format": "did"
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    }
+  }
+}

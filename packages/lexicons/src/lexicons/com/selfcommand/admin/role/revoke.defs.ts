@@ -14,7 +14,7 @@ export const $params = /*#__PURE__*/ l.params();
 
 export type $Params = l.InferOutput<typeof $params>;
 
-export const $input = /*#__PURE__*/ l.jsonPayload({"subject":/*#__PURE__*/ l.string({"format":"did"})});
+export const $input = /*#__PURE__*/ l.jsonPayload({"subject":/*#__PURE__*/ l.string({"format":"did"}),"approvalId":/*#__PURE__*/ l.optional(/*#__PURE__*/ l.string({"maxLength":64}))});
 
 export type $Input<B = l.BinaryData> = l.InferPayload<typeof $input, B>;
 export type $InputBody<B = l.BinaryData> = l.InferPayloadBody<typeof $input, B>;
@@ -24,7 +24,7 @@ export const $output = /*#__PURE__*/ l.payload();
 export type $Output<B = l.BinaryData> = l.InferPayload<typeof $output, B>;
 export type $OutputBody<B = l.BinaryData> = l.InferPayloadBody<typeof $output, B>;
 
-const main = /*#__PURE__*/ l.procedure($nsid, $params, $input, $output, ["Forbidden","RoleNotFound","LastAdmin","InvalidRequest"]);
+const main = /*#__PURE__*/ l.procedure($nsid, $params, $input, $output, ["Forbidden","ApprovalRequired","RoleNotFound","LastAdmin","InvalidRequest"]);
 
 export { main };
 

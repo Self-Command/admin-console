@@ -1,0 +1,62 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.settings.logo.upload",
+  "description": "Upload a branding logo. Requires a service JWT (com.atproto.server.getServiceAuth) and settings.write. Only PNG, JPEG and WebP up to 128 KB after decoding are accepted; SVG is rejected.",
+  "defs": {
+    "main": {
+      "type": "procedure",
+      "input": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["mime", "data"],
+          "properties": {
+            "mime": {
+              "type": "string",
+              "knownValues": ["image/png", "image/jpeg", "image/webp"]
+            },
+            "data": {
+              "type": "string",
+              "maxLength": 200000,
+              "description": "Base64-encoded image bytes without a data URL prefix."
+            }
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["url", "version", "updatedAt"],
+          "properties": {
+            "url": {
+              "type": "string"
+            },
+            "version": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "datetime"
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks settings.write."
+        },
+        {
+          "name": "InvalidRequest",
+          "description": "The MIME type or image bytes are not acceptable."
+        },
+        {
+          "name": "PayloadTooLarge",
+          "description": "The decoded image exceeds 128 KB."
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "lexicon": 1,
+  "id": "com.selfcommand.admin.security.access.list",
+  "description": "List aggregated admin console access records, newest first. Requires a service JWT (com.atproto.server.getServiceAuth) and security.read. Records store the source address and client only, never request bodies or query strings.",
+  "defs": {
+    "main": {
+      "type": "query",
+      "parameters": {
+        "type": "params",
+        "properties": {
+          "cursor": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200,
+            "default": 50
+          },
+          "did": {
+            "type": "string",
+            "format": "did"
+          }
+        }
+      },
+      "output": {
+        "encoding": "application/json",
+        "schema": {
+          "type": "object",
+          "required": ["records", "total"],
+          "properties": {
+            "cursor": {
+              "type": "string"
+            },
+            "total": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "records": {
+              "type": "array",
+              "items": {
+                "type": "ref",
+                "ref": "com.selfcommand.admin.defs#accessRecord"
+              }
+            }
+          }
+        }
+      },
+      "errors": [
+        {
+          "name": "Forbidden",
+          "description": "The caller lacks security.read."
+        }
+      ]
+    }
+  }
+}

@@ -26,9 +26,24 @@
             "type": "string",
             "maxLength": 128
           },
+          "target": {
+            "type": "string",
+            "maxLength": 512,
+            "description": "Exact target identifier, such as a DID or setting partition."
+          },
           "result": {
             "type": "string",
             "knownValues": ["success", "denied", "error"]
+          },
+          "sort": {
+            "type": "string",
+            "knownValues": ["createdAt", "actor", "action", "result"],
+            "default": "createdAt"
+          },
+          "order": {
+            "type": "string",
+            "knownValues": ["asc", "desc"],
+            "default": "desc"
           },
           "since": {
             "type": "string",
